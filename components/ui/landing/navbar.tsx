@@ -5,9 +5,11 @@ import { Button } from "../Button";
 import { AnimatePresence } from "framer-motion";
 import { X, Menu } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const Navigation = () => {
     const [currentPage, setCurrentPage] = useState('landing')
+    const router = useRouter();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
 
@@ -20,7 +22,7 @@ const Navigation = () => {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.5 }}
                         className="flex items-center gap-2 cursor-pointer"
-                        onClick={() => setCurrentPage('landing')}
+                        onClick={() => router.push('/')}
                     >
                         <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
                             <Zap className="w-6 h-6 text-white" />
@@ -35,8 +37,8 @@ const Navigation = () => {
                         <a href="#how-it-works" className="text-gray-700 hover:text-blue-600 transition-colors">How It Works</a>
                         <a href="#who-we-serve" className="text-gray-700 hover:text-blue-600 transition-colors">Who We Serve</a>
                         <a href="#testimonials" className="text-gray-700 hover:text-blue-600 transition-colors">Testimonials</a>
-                        <Button variant="outline" onClick={() => setCurrentPage('login')}>Login</Button>
-                        <Button onClick={() => setCurrentPage('onboarding')}>Get Started</Button>
+                        <Button variant="outline" onClick={() => router.push('/login')}>Login</Button>
+                        <Button onClick={() => router.push('/signup')}>Get Started</Button>
                     </div>
 
                     <div className="md:hidden">
@@ -59,8 +61,8 @@ const Navigation = () => {
                                 <a href="#how-it-works" className="text-gray-700 hover:text-blue-600">How It Works</a>
                                 <a href="#who-we-serve" className="text-gray-700 hover:text-blue-600">Who We Serve</a>
                                 <a href="#testimonials" className="text-gray-700 hover:text-blue-600">Testimonials</a>
-                                <Button variant="outline" onClick={() => setCurrentPage('login')} className="w-full">Login</Button>
-                                <Button onClick={() => setCurrentPage('onboarding')} className="w-full">Get Started</Button>
+                                <Button variant="outline" onClick={() => router.push('/login')} className="w-full">Login</Button>
+                                <Button onClick={() => router.push('/signup')} className="w-full">Get Started</Button>
                             </div>
                         </motion.div>
                     )}

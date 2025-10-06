@@ -4,23 +4,29 @@ import { Card } from '@/components/ui/Card'
 import { Label } from '@/components/ui/Label'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
-import { Building2, FileText, Phone, Mail, ArrowRight, Shield } from 'lucide-react'
+import { Building2, FileText, Phone, Mail, ArrowRight, Shield, EyeOff, Eye, Lock } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
 import { useToast } from '@/hooks/use-toast'
 import Navigation from '@/components/ui/landing/navbar'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 const OnboardingPage = () => {
+    const router = useRouter()
     const [formData, setFormData] = useState({
         businessName: '',
         panGstin: '',
         mobile: '',
         email: '',
+        password: '',
         otp: ''
     })
+    const [showPassword, setShowPassword] = useState(false)
+    const [password, setPassword] = useState('')
+
     return (
         <div className="min-h-screen bg-gray-50">
-            <Navigation />
+            {/* <Navigation /> */}
             <div className="max-w-2xl mx-auto p-6 py-12">
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
@@ -112,6 +118,34 @@ const OnboardingPage = () => {
                             </motion.div>
 
                             <motion.div
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.5, delay: 0.5 }}
+                            >
+                                <Label htmlFor="password" className="flex items-center gap-2 mb-2">
+                                    <Lock className="w-4 h-4 text-blue-600" />
+                                    Password *
+                                </Label>
+                                <div className="relative">
+                                    <Input
+                                        id="password"
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder="Enter your password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className="w-full pr-10"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                    >
+                                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                    </button>
+                                </div>
+                            </motion.div>
+
+                            <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.5, delay: 0.6 }}
@@ -121,7 +155,7 @@ const OnboardingPage = () => {
                                 <Button
                                     className="w-full"
                                     size="lg"
-                                // onClick={() => setCurrentPage('dashboard')}
+                                    onClick={() => router.push('/dashboard')}
                                 >
                                     Continue to Dashboard
                                     <ArrowRight className="w-5 h-5 ml-2" />
