@@ -1,11 +1,11 @@
-import Sidebar from '@/components/ui/common/sibebar'
+import { DashboardScreen } from '@/components/Screens/DashboardScreen'
 import React from 'react'
 
 const page = () => {
     return (
         <>
-            <Sidebar />
-            <div>page</div>
+
+            <DashboardScreen />
         </>
     )
 }
