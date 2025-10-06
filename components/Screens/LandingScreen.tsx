@@ -15,6 +15,7 @@ import HeroSection from '@/components/ui/landing/heroSection'
 import Feature from '@/components/ui/landing/feature'
 import Footer from '@/components/ui/landing/footer'
 import { useState } from 'react'
+import Testimonial from '../ui/landing/testimonial'
 const LandingPage = () => {
     const [currentPage, setCurrentPage] = useState('landing')
     return (
@@ -140,42 +141,7 @@ const LandingPage = () => {
                 </div>
             </motion.section>
 
-            <motion.section
-                id="testimonials"
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
-                viewport={{ once: true }}
-                className="py-20 bg-white"
-            >
-                <div className="max-w-7xl mx-auto px-4">
-                    <div className="text-center mb-16">
-                        <Badge className="mb-4 bg-green-100 text-green-700">Testimonials</Badge>
-                        <h2 className="text-4xl font-bold text-gray-900 mb-4">Trusted by Thousands of SMEs</h2>
-                    </div>
-
-                    <div className="grid md:grid-cols-3 gap-8">
-                        {[
-                            { name: 'Rajesh Kumar', company: 'Tech Solutions Pvt Ltd', text: 'FundanFlow helped us get ₹25L working capital in just 2 days. The process was incredibly smooth!', rating: 5 },
-                            { name: 'Priya Sharma', company: 'Fashion Boutique', text: 'Best platform for SME loans. The credit score feature helped me understand my eligibility clearly.', rating: 5 },
-                            { name: 'Amit Patel', company: 'Manufacturing Co', text: 'Transparent process, competitive rates, and excellent support. Highly recommended!', rating: 5 }
-                        ].map((review, idx) => (
-                            <Card key={idx} className="p-6">
-                                <div className="flex mb-4">
-                                    {[...Array(review.rating)].map((_, i) => (
-                                        <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                                    ))}
-                                </div>
-                                <p className="text-gray-600 mb-4">"{review.text}"</p>
-                                <div>
-                                    <div className="font-bold">{review.name}</div>
-                                    <div className="text-sm text-gray-500">{review.company}</div>
-                                </div>
-                            </Card>
-                        ))}
-                    </div>
-                </div>
-            </motion.section>
+            <Testimonial />
 
             <motion.section
                 initial={{ opacity: 0, y: 50 }}
@@ -194,11 +160,12 @@ const LandingPage = () => {
                                 <ArrowRight className="w-5 h-5 ml-2" />
                             </Button>
                         </motion.div>
-                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600 text-lg px-8">
-                                Schedule a Demo
-                            </Button>
-                        </motion.div>
+                        <Button
+                            variant="outline"
+                        // className="border-white text-white hover:bg-white hover:text-blue-600 text-lg px-8"
+                        >
+                            Schedule a Demo
+                        </Button>
                     </div>
                 </div>
             </motion.section>
