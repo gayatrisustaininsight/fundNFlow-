@@ -1,4 +1,3 @@
-// components/screens/UploadScreen.tsx
 'use client'
 
 import { useState } from 'react'
@@ -9,11 +8,14 @@ import { Upload, CheckCircle, FileText, AlertCircle } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
 import { useToast } from '@/hooks/use-toast'
 import { Document } from '@/types'
+import { CreditPassportScreen } from './CreditPassportScreen'
+import AnalyzingScreen from './documents/anlysing'
 
-export function UploadScreen() {
+export function UploadScreen({ setIsUploaded }: { setIsUploaded: (isUploaded: boolean) => void }) {
     const { documents, addDocument, updateDocument, setCurrentStep } = useAppStore()
     const { toast } = useToast()
     const [dragActive, setDragActive] = useState(false)
+    // const [isUploaded, setIsUploaded] = useState(false)
 
     const handleFileUpload = (files: FileList | null) => {
         if (!files) return
@@ -67,6 +69,7 @@ export function UploadScreen() {
     }
 
     const handleAnalyze = () => {
+
         if (documents.length === 0) {
             toast({
                 title: "No documents",
@@ -89,6 +92,9 @@ export function UploadScreen() {
         setTimeout(() => {
             setCurrentStep('credit-passport')
         }, 3000)
+        setIsUploaded(true)
+
+
     }
 
     const getStatusIcon = (status: Document['status']) => {
@@ -193,6 +199,12 @@ export function UploadScreen() {
                     </div>
                 </Card>
             </div>
+            {
+                documents.some(doc => doc.status === 'processing') && (
+                    <AnalyzingScreen documents={documents} />
+                )
+            }
         </div>
     )
 }
+

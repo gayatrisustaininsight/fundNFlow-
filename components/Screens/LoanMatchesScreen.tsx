@@ -45,7 +45,7 @@ const mockLoanOffers: LoanOffer[] = [
   }
 ]
 
-export function LoanMatchesScreen() {
+export function LoanMatchesScreen({ setIsLoanMatches }: { setIsLoanMatches: (isLoanMatches: boolean) => void }) {
   const { setCurrentStep, setLoanOffers, addApplication } = useAppStore()
 
   const handleApplyLoan = (offer: LoanOffer) => {
@@ -295,12 +295,12 @@ export function LoanMatchesScreen() {
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button
               variant="outline"
-              onClick={() => setCurrentStep('credit-passport')}
+              onClick={() => setIsLoanMatches(false)}
             >
               Back to Credit Passport
             </Button>
           </motion.div>
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          {/* <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button
               size="lg"
               onClick={() => {
@@ -313,7 +313,7 @@ export function LoanMatchesScreen() {
                 <ArrowRight className="w-4 h-4" />
               </div>
             </Button>
-          </motion.div>
+          </motion.div> */}
         </motion.div>
       </div>
     </div>

@@ -7,6 +7,8 @@ import { Progress } from '@/components/ui/Progress'
 import { TrendingUp, IndianRupee, Percent, Calendar, BarChart3 } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
 import { PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts'
+import { useState } from 'react'
+import { LoanMatchesScreen } from './LoanMatchesScreen'
 
 const mockCreditScore = {
     score: 72,
@@ -33,12 +35,13 @@ const mockTrendData = [
     { month: 'Jun', score: 72 }
 ]
 
-export function CreditPassportScreen() {
+export function CreditPassportScreen({ setIsCreditPassport }: { setIsCreditPassport: (isCreditPassport: boolean) => void }) {
     const { setCurrentStep, setCreditScore } = useAppStore()
 
     const handleViewLoanMatches = () => {
         setCreditScore(mockCreditScore)
         setCurrentStep('loan-matches')
+        setIsCreditPassport(true)
     }
 
     const getScoreColor = (score: number) => {
@@ -54,6 +57,7 @@ export function CreditPassportScreen() {
         if (score >= 40) return 'bg-yellow-600'
         return 'bg-red-600'
     }
+    const [isLoanMatches, setIsLoanMatches] = useState(false)
 
     return (
         <div className="min-h-screen bg-gray-50 p-6">

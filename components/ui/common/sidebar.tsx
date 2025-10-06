@@ -5,14 +5,17 @@ import { Badge } from '../badge'
 import { ChevronRight, ChevronLeft } from 'lucide-react'
 import { useState } from 'react'
 import { useAppStore } from '@/store/appStore'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 
 const Sidebar = () => {
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
     const { businessData } = useAppStore()
-    const [currentSection, setCurrentSection] = useState('dashboard')
+    const pathname = usePathname()
+    const [currentSection, setCurrentSection] = useState(
+        pathname
+    )
     const [currentPage, setCurrentPage] = useState(
-        window.location.pathname
+        pathname
     )
     const router = useRouter()
 
