@@ -65,10 +65,11 @@ const Sidebar = () => {
                             onClick={
                                 () => {
                                     router.push(item.route)
+                                    setCurrentPage(item.route)
                                     setCurrentSection(item.id)
                                 }
                             }
-                            className={`w-full cursor-pointer flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${currentSection === item.id
+                            className={`w-full cursor-pointer flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${currentSection === item.id || currentPage === item.route
                                 ? 'bg-blue-50 text-blue-600'
                                 : 'text-gray-700 hover:bg-gray-50'
                                 }`}
@@ -125,7 +126,8 @@ const Sidebar = () => {
                                 if (item.id === 'logout') {
                                     setCurrentPage('landing');
                                 } else {
-                                    router.push(item.route)
+                                    router.push(item.route);
+                                    setCurrentPage(item.route);
                                     setCurrentSection(item.id);
                                 }
                             }}
