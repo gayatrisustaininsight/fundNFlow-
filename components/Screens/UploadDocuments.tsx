@@ -30,11 +30,11 @@ export function UploadScreen() {
 
             // Simulate file upload
             const interval = setInterval(() => {
-                updateDocument(document.id, (prev) => {
+                updateDocument(document.id, (prev: any) => {
                     const newProgress = (prev.uploadProgress || 0) + 10
                     if (newProgress >= 100) {
                         clearInterval(interval)
-                        return { uploadProgress: 100, status: 'uploaded' }
+                        return { uploadProgress: 100, status: 'uploaded' as Document['status'] }
                     }
                     return { uploadProgress: newProgress }
                 })
