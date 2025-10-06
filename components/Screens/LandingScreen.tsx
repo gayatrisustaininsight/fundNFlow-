@@ -148,10 +148,10 @@ const LandingPage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8 }}
                 viewport={{ once: true }}
-                className="py-20 bg-gradient-to-r from-blue-600 to-indigo-600 text-white"
+                className="py-20 bg-gradient-to-r from-blue-600 to-indigo-600 "
             >
                 <div className="max-w-4xl mx-auto text-center px-4">
-                    <h2 className="text-4xl font-bold mb-4">Ready to Grow Your Business?</h2>
+                    <h2 className="text-4xl font-bold mb-4 text-white">Ready to Grow Your Business?</h2>
                     <p className="text-xl mb-8 text-blue-100">Join thousands of SMEs getting funded through FundanFlow</p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -162,7 +162,6 @@ const LandingPage = () => {
                         </motion.div>
                         <Button
                             variant="outline"
-                        // className="border-white text-white hover:bg-white hover:text-blue-600 text-lg px-8"
                         >
                             Schedule a Demo
                         </Button>

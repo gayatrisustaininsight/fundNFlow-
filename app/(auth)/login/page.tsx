@@ -10,11 +10,13 @@ import { Building2, Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
 import { useToast } from '@/hooks/use-toast'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [showPassword, setShowPassword] = useState(false)
+    const router = useRouter()
     const [isLoading, setIsLoading] = useState(false)
 
     const { setCurrentStep } = useAppStore()
@@ -36,12 +38,12 @@ export default function LoginPage() {
 
         setTimeout(() => {
             setIsLoading(false)
-            setCurrentStep('onboarding')
             toast({
                 title: "Welcome!",
                 description: "Login successful. Let's get started with your business profile.",
             })
         }, 1500)
+        router.push('/dashboard')
     }
 
     return (
@@ -135,30 +137,24 @@ export default function LoginPage() {
                                     </Link>
                                 </motion.div>
 
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.5, delay: 0.6 }}
+                                <Button
+                                    type="submit"
+                                    className="w-full"
+                                    size="lg"
+                                    disabled={isLoading}
                                 >
-                                    <Button
-                                        type="submit"
-                                        className="w-full"
-                                        size="lg"
-                                        disabled={isLoading}
-                                    >
-                                        {isLoading ? (
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                                Signing In...
-                                            </div>
-                                        ) : (
-                                            <div className="flex items-center gap-2">
-                                                Sign In
-                                                <ArrowRight className="w-4 h-4" />
-                                            </div>
-                                        )}
-                                    </Button>
-                                </motion.div>
+                                    {isLoading ? (
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                            Signing In...
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center gap-2">
+                                            Sign In
+                                            <ArrowRight className="w-4 h-4" />
+                                        </div>
+                                    )}
+                                </Button>
                             </form>
 
                             <motion.div
