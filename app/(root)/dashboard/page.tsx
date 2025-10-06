@@ -1,8 +1,12 @@
+import Sidebar from '@/components/ui/common/sibebar'
 import React from 'react'
 
 const page = () => {
     return (
-        <div>page</div>
+        <>
+            <Sidebar />
+            <div>page</div>
+        </>
     )
 }
 
