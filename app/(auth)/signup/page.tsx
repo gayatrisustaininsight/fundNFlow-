@@ -22,7 +22,6 @@ const OnboardingPage = () => {
         otp: ''
     })
     const [showPassword, setShowPassword] = useState(false)
-    const [password, setPassword] = useState('')
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -131,8 +130,8 @@ const OnboardingPage = () => {
                                         id="password"
                                         type={showPassword ? "text" : "password"}
                                         placeholder="Enter your password"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
+                                        value={formData.password}
+                                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                         className="w-full pr-10"
                                     />
                                     <button
