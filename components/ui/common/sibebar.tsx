@@ -5,27 +5,29 @@ import { Badge } from '../badge'
 import { ChevronRight, ChevronLeft } from 'lucide-react'
 import { useState } from 'react'
 import { useAppStore } from '@/store/appStore'
+import { useRouter } from 'next/navigation'
 
 const Sidebar = () => {
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
     const { businessData } = useAppStore()
     const [currentSection, setCurrentSection] = useState('dashboard')
     const [currentPage, setCurrentPage] = useState('dashboard')
+    const router = useRouter()
 
     const menuItems = [
-        { id: 'dashboard', icon: Home, label: 'Dashboard', badge: null },
-        { id: 'credit-score', icon: TrendingUp, label: 'Credit Score', badge: null },
-        { id: 'loan-offers', icon: CreditCard, label: 'Loan Offers', badge: '3' },
-        { id: 'applications', icon: FileText, label: 'My Applications', badge: '2' },
-        { id: 'documents', icon: Upload, label: 'Documents', badge: null },
-        { id: 'analytics', icon: BarChart3, label: 'Analytics', badge: null },
-        { id: 'profile', icon: UserCircle, label: 'Profile', badge: null },
-        { id: 'settings', icon: Settings, label: 'Settings', badge: null },
+        { id: 'dashboard', icon: Home, label: 'Dashboard', badge: null, route: '/dashboard' },
+        { id: 'credit-score', icon: TrendingUp, label: 'Credit Score', badge: null, route: '/credit-score' },
+        { id: 'loan-offers', icon: CreditCard, label: 'Loan Offers', badge: '3', route: '/loan-offers' },
+        { id: 'applications', icon: FileText, label: 'My Applications', badge: '2', route: '/applications' },
+        { id: 'documents', icon: Upload, label: 'Documents', badge: null, route: '/documents' },
+        { id: 'analytics', icon: BarChart3, label: 'Analytics', badge: null, route: '/analytics' },
+        { id: 'profile', icon: UserCircle, label: 'Profile', badge: null, route: '/profile' },
+        { id: 'settings', icon: Settings, label: 'Settings', badge: null, route: '/settings' },
     ];
 
     const bottomMenuItems = [
-        { id: 'help', icon: HelpCircle, label: 'Help & Support', badge: null },
-        { id: 'logout', icon: LogOut, label: 'Logout', badge: null },
+        { id: 'help', icon: HelpCircle, label: 'Help & Support', badge: null, route: '/help-support' },
+        { id: 'logout', icon: LogOut, label: 'Logout', badge: null, route: '/login' },
     ];
 
     return (
@@ -60,7 +62,12 @@ const Sidebar = () => {
                     {menuItems.map((item) => (
                         <button
                             key={item.id}
-                            onClick={() => setCurrentSection(item.id)}
+                            onClick={
+                                () => {
+                                    router.push(item.route)
+                                    setCurrentSection(item.id)
+                                }
+                            }
                             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${currentSection === item.id
                                 ? 'bg-blue-50 text-blue-600'
                                 : 'text-gray-700 hover:bg-gray-50'
@@ -118,6 +125,7 @@ const Sidebar = () => {
                                 if (item.id === 'logout') {
                                     setCurrentPage('landing');
                                 } else {
+                                    router.push(item.route)
                                     setCurrentSection(item.id);
                                 }
                             }}
