@@ -45,7 +45,7 @@ const mockLoanOffers: LoanOffer[] = [
   }
 ]
 
-export function LoanMatchesScreen({ setIsLoanMatches }: { setIsLoanMatches: (isLoanMatches: boolean) => void }) {
+export function LoanMatchesScreen({ setIsLoanMatches }: { setIsLoanMatches?: (isLoanMatches: boolean) => void }) {
   const { setCurrentStep, setLoanOffers, addApplication } = useAppStore()
 
   const handleApplyLoan = (offer: LoanOffer) => {
@@ -295,7 +295,7 @@ export function LoanMatchesScreen({ setIsLoanMatches }: { setIsLoanMatches: (isL
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button
               variant="outline"
-              onClick={() => setIsLoanMatches(false)}
+              onClick={() => setIsLoanMatches?.(false)}
             >
               Back to Credit Passport
             </Button>

@@ -11,7 +11,7 @@ import { Document } from '@/types'
 import { CreditPassportScreen } from './CreditPassportScreen'
 import AnalyzingScreen from './documents/anlysing'
 
-export function UploadScreen({ setIsUploaded }: { setIsUploaded: (isUploaded: boolean) => void }) {
+export function UploadScreen({ setIsUploaded }: { setIsUploaded?: (isUploaded: boolean) => void }) {
     const { documents, addDocument, updateDocument, setCurrentStep } = useAppStore()
     const { toast } = useToast()
     const [dragActive, setDragActive] = useState(false)
@@ -92,7 +92,7 @@ export function UploadScreen({ setIsUploaded }: { setIsUploaded: (isUploaded: bo
         setTimeout(() => {
             setCurrentStep('credit-passport')
         }, 3000)
-        setIsUploaded(true)
+        setIsUploaded?.(true)
 
 
     }

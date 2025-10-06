@@ -35,13 +35,13 @@ const mockTrendData = [
     { month: 'Jun', score: 72 }
 ]
 
-export function CreditPassportScreen({ setIsCreditPassport }: { setIsCreditPassport: (isCreditPassport: boolean) => void }) {
+export function CreditPassportScreen({ setIsCreditPassport }: { setIsCreditPassport?: (isCreditPassport: boolean) => void }) {
     const { setCurrentStep, setCreditScore } = useAppStore()
 
     const handleViewLoanMatches = () => {
         setCreditScore(mockCreditScore)
         setCurrentStep('loan-matches')
-        setIsCreditPassport(true)
+        setIsCreditPassport?.(true)
     }
 
     const getScoreColor = (score: number) => {
