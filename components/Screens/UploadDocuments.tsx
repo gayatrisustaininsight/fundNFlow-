@@ -1,3 +1,4 @@
+// components/screens/UploadScreen.tsx
 'use client'
 
 import { useState } from 'react'
@@ -28,16 +29,22 @@ export function UploadScreen() {
 
             addDocument(document)
 
-            // Simulate file upload
+            // Simulate file upload with proper typing
+            let progress = 0
             const interval = setInterval(() => {
-                updateDocument(document.id, (prev: any) => {
-                    const newProgress = (prev.uploadProgress || 0) + 10
-                    if (newProgress >= 100) {
-                        clearInterval(interval)
-                        return { uploadProgress: 100, status: 'uploaded' as Document['status'] }
-                    }
-                    return { uploadProgress: newProgress }
-                })
+                progress += 10
+
+                if (progress >= 100) {
+                    clearInterval(interval)
+                    updateDocument(document.id, {
+                        uploadProgress: 100,
+                        status: 'uploaded'
+                    })
+                } else {
+                    updateDocument(document.id, {
+                        uploadProgress: progress
+                    })
+                }
             }, 200)
         })
     }
