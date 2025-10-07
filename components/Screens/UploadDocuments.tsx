@@ -87,14 +87,19 @@ export function UploadScreen({ setIsUploaded }: { setIsUploaded?: (isUploaded: b
                 setTimeout(() => {
                     updateDocument(doc.id, { status: 'processed' })
                 }, 5000)
+                setIsUploaded?.(true)
+
             }
             else if (doc.status === 'processed') {
                 setTimeout(() => {
+                    setIsAnalyzing(false)
+                    setIsUploaded?.(true)
+
+
                 }, 3000)
             }
         })
-        setIsUploaded?.(true)
-        setIsAnalyzing(false)
+        // setIsAnalyzing(false)
         // setTimeout(() => {
         //     setCurrentStep('credit-passport')
         // }, 3000);
