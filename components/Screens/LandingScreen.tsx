@@ -154,12 +154,12 @@ const LandingPage = () => {
                     <h2 className="text-4xl font-bold mb-4 text-white">Ready to Grow Your Business?</h2>
                     <p className="text-xl mb-8 text-blue-100">Join thousands of SMEs getting funded through FundanFlow</p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                            <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8" onClick={() => setCurrentPage('onboarding')}>
-                                Get Started Now
-                                <ArrowRight className="w-5 h-5 ml-2" />
-                            </Button>
-                        </motion.div>
+
+                        <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8" onClick={() => setCurrentPage('onboarding')}>
+                            Get Started Now
+                            <ArrowRight className="w-5 h-5 ml-2" />
+                        </Button>
+
                         <Button
                             variant="outline"
                         >
@@ -167,9 +167,9 @@ const LandingPage = () => {
                         </Button>
                     </div>
                 </div>
-            </motion.section>
+            </motion.section >
             <Footer />
-        </div>
+        </div >
 
     )
 }

@@ -292,15 +292,15 @@ export function LoanMatchesScreen({ setIsLoanMatches }: { setIsLoanMatches?: (is
           transition={{ duration: 0.6, delay: 0.4 }}
           className="flex justify-center gap-4"
         >
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button
-              variant="outline"
-              onClick={() => setIsLoanMatches?.(false)}
-            >
-              Back to Credit Passport
-            </Button>
-          </motion.div>
-          {/* <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+
+          <Button
+            variant="outline"
+            onClick={() => setIsLoanMatches?.(false)}
+          >
+            Back to Credit Passport
+          </Button>
+        </motion.div>
+        {/* <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button
               size="lg"
               onClick={() => {
@@ -314,8 +314,8 @@ export function LoanMatchesScreen({ setIsLoanMatches }: { setIsLoanMatches?: (is
               </div>
             </Button>
           </motion.div> */}
-        </motion.div>
+
       </div>
-    </div>
+    </div >
   )
 }
