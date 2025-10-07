@@ -2,43 +2,30 @@
 import { CreditPassportScreen } from '@/components/Screens/CreditPassportScreen'
 import { LoanMatchesScreen } from '@/components/Screens/LoanMatchesScreen'
 import { UploadScreen } from '@/components/Screens/UploadDocuments'
-import React, { useState } from 'react'
+import { Stepper } from '@/components/ui/Stepper'
+import { useAppStore } from '@/store/appStore'
+import React, { useEffect } from 'react'
 
 const DocumentsContent = () => {
-    const [isUploaded, setIsUploaded] = useState(false);
-    const [isCreditPassport, setIsCreditPassport] = useState(false);
-    const [isLoanMatches, setIsLoanMatches] = useState(false);
+    const { currentStep, setCurrentStep } = useAppStore()
+
+    useEffect(() => {
+        if (!(currentStep === 'upload' || currentStep === 'credit-passport' || currentStep === 'loan-matches')) {
+            setCurrentStep('upload')
+        }
+    }, [currentStep, setCurrentStep])
     return (
-        <div>
-            {
-                !isUploaded && (
-                    <div className=''>
-                        <UploadScreen setIsUploaded={setIsUploaded} />
-                    </div>
-                )
-            }
-
-
-            {
-                isUploaded && !isCreditPassport && (
-                    <div className=''>
-                        <CreditPassportScreen
-                            setIsCreditPassport={setIsCreditPassport}
-                        />
-                    </div>
-                )
-            }
-            {
-                isCreditPassport && (
-                    <div className=''>
-                        <LoanMatchesScreen
-                            setIsLoanMatches={setIsLoanMatches}
-                        />
-                    </div>
-                )
-            }
-
-
+        <div className='min-h-screen bg-gray-50 p-6'>
+            <Stepper />
+            {currentStep === 'upload' && (
+                <UploadScreen />
+            )}
+            {currentStep === 'credit-passport' && (
+                <CreditPassportScreen />
+            )}
+            {currentStep === 'loan-matches' && (
+                <LoanMatchesScreen />
+            )}
         </div>
     )
 }

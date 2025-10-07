@@ -86,7 +86,7 @@ export function UploadScreen({ setIsUploaded }: { setIsUploaded?: (isUploaded: b
                 updateDocument(doc.id, { status: 'processing' })
                 setTimeout(() => {
                     updateDocument(doc.id, { status: 'processed' })
-                }, 5000)
+                }, 1500)
                 setIsUploaded?.(true)
 
             }
@@ -96,13 +96,13 @@ export function UploadScreen({ setIsUploaded }: { setIsUploaded?: (isUploaded: b
                     setIsUploaded?.(true)
 
 
-                }, 3000)
+                }, 800)
             }
         })
-        // setIsAnalyzing(false)
-        // setTimeout(() => {
-        //     setCurrentStep('credit-passport')
-        // }, 3000);
+        setTimeout(() => {
+            setIsAnalyzing(false)
+            setCurrentStep('credit-passport')
+        }, 2200)
 
 
 
@@ -125,33 +125,34 @@ export function UploadScreen({ setIsUploaded }: { setIsUploaded?: (isUploaded: b
 
     return (
         <div className="min-h-screen bg-gray-50 p-6">
-            {
-                isAnalyzing ? <AnalyzingScreen documents={documents} /> :
-
-                    <div className="max-w-2xl mx-auto">
-                        <div className="text-center mb-8">
-                            <h2 className="text-3xl font-bold text-gray-900 mb-2">Document Upload</h2>
-                            <p className="text-gray-600">Upload your financial documents for analysis</p>
+            {isAnalyzing ? (
+                <AnalyzingScreen documents={documents} />
+            ) : (
+                <div className="max-w-6xl mx-auto">
+                    <div className="mb-6 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h2 className="text-2xl font-bold mb-1">Upload Documents</h2>
+                                <p className="text-white/80 text-sm">Securely upload your files to get AI-powered credit insights</p>
+                            </div>
                         </div>
+                    </div>
 
-                        <Card className="p-8">
-                            <div className="space-y-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-2">
+                            <Card className="p-8">
                                 <div
-                                    className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
-                                        }`}
+                                    className={`rounded-2xl p-10 text-center transition-all border-2 border-dashed ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white'}`}
                                     onDragEnter={handleDrag}
                                     onDragLeave={handleDrag}
                                     onDragOver={handleDrag}
                                     onDrop={handleDrop}
                                 >
-                                    <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                                    <h3 className="text-lg font-semibold mb-2">Upload Documents</h3>
-                                    <p className="text-gray-600 mb-4">
-                                        Drag and drop files or click to browse
-                                    </p>
-                                    <p className="text-sm text-gray-500 mb-4">
-                                        Supported formats: PDF, JPG, PNG (Max 10MB per file)
-                                    </p>
+                                    <div className="mx-auto mb-5 w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center">
+                                        <Upload className="w-8 h-8 text-blue-600" />
+                                    </div>
+                                    <h3 className="text-xl font-semibold mb-2">Drag & drop your files</h3>
+                                    <p className="text-sm text-gray-600 mb-5">PDF, JPG, PNG up to 10MB each</p>
                                     <input
                                         type="file"
                                         onChange={(e) => handleFileUpload(e.target.files)}
@@ -160,61 +161,77 @@ export function UploadScreen({ setIsUploaded }: { setIsUploaded?: (isUploaded: b
                                         accept=".pdf,.jpg,.jpeg,.png"
                                         multiple
                                     />
-                                    <Button onClick={() => document.getElementById('fileUpload')?.click()}>
-                                        Choose Files
+                                    <Button onClick={() => document.getElementById('fileUpload')?.click()} className="px-6">
+                                        Browse Files
                                     </Button>
                                 </div>
+                            </Card>
+                        </div>
 
-                                {documents.length > 0 && (
-                                    <div className="space-y-4">
-                                        <h4 className="font-semibold">Documents:</h4>
+                        <div className="lg:sticky lg:top-6 h-fit">
+                            <Card className="p-6">
+                                <h4 className="font-semibold mb-3">Documents</h4>
+                                {documents.length === 0 ? (
+                                    <div className="text-sm text-gray-500">No files added yet</div>
+                                ) : (
+                                    <div className="space-y-3">
                                         {documents.map((doc) => (
-                                            <div key={doc.id} className="space-y-2">
-                                                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                                            <div key={doc.id} className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                                                <div className="flex items-center gap-3">
                                                     {getStatusIcon(doc.status)}
-                                                    <div className="flex-1">
-                                                        <div className="font-medium">{doc.name}</div>
-                                                        <div className="text-sm text-gray-500 capitalize">
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="font-medium truncate">{doc.name}</div>
+                                                        <div className="text-xs text-gray-500 capitalize">
                                                             {doc.type.replace('_', ' ')} • {doc.status}
                                                         </div>
                                                     </div>
                                                 </div>
                                                 {doc.status === 'uploading' && doc.uploadProgress !== undefined && (
-                                                    <div className="px-3">
+                                                    <div className="mt-3">
                                                         <div className="flex items-center justify-between mb-1">
-                                                            <span className="text-sm font-medium">Uploading...</span>
-                                                            <span className="text-sm text-gray-500">{doc.uploadProgress}%</span>
+                                                            <span className="text-xs text-gray-600">Uploading</span>
+                                                            <span className="text-xs text-gray-500">{doc.uploadProgress}%</span>
                                                         </div>
-                                                        <Progress value={doc.uploadProgress} className="w-full" />
+                                                        <Progress value={doc.uploadProgress} />
                                                     </div>
                                                 )}
                                             </div>
                                         ))}
+                                    </div>
+                                )}
+                            </Card>
 
+                            <Card className="p-6 mt-4">
+                                <h4 className="font-semibold mb-2">Guidelines</h4>
+                                <ul className="text-sm text-gray-700 space-y-2">
+                                    <li>• Bank statements for last 12 months</li>
+                                    <li>• GST returns for last 12 months</li>
+                                    <li>• Latest financial statements</li>
+                                    <li>• Ensure documents are legible</li>
+                                </ul>
+                            </Card>
+                        </div>
+                    </div>
+
+                    {documents.length > 0 && (
+                        <div className="fixed bottom-6 left-0 right-0">
+                            <div className="max-w-6xl mx-auto">
+                                <Card className="p-4 shadow-lg">
+                                    <div className="flex items-center gap-4">
+                                        <div className="text-sm text-gray-600 flex-1">Ready to analyze your documents</div>
                                         <Button
-                                            className="w-full mt-4"
                                             onClick={handleAnalyze}
                                             disabled={documents.some(doc => doc.status === 'uploading' || doc.status === 'processing')}
                                         >
                                             {documents.some(doc => doc.status === 'processing') ? 'Processing...' : 'Analyze Documents'}
                                         </Button>
                                     </div>
-                                )}
-
-                                <div className="bg-blue-50 p-4 rounded-lg">
-                                    <h4 className="font-semibold text-blue-900 mb-2">Document Requirements:</h4>
-                                    <ul className="text-sm text-blue-800 space-y-1">
-                                        <li>• Bank statements for the last 12 months</li>
-                                        <li>• GST returns for the last 12 months</li>
-                                        <li>• Latest financial statements (if available)</li>
-                                        <li>• All documents should be clear and readable</li>
-                                    </ul>
-                                </div>
+                                </Card>
                             </div>
-                        </Card>
-                    </div>
-            }
-
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     )
 }

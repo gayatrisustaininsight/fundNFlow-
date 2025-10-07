@@ -295,7 +295,7 @@ export function LoanMatchesScreen({ setIsLoanMatches }: { setIsLoanMatches?: (is
 
           <Button
             variant="outline"
-            onClick={() => setIsLoanMatches?.(false)}
+            onClick={() => setCurrentStep('credit-passport')}
           >
             Back to Credit Passport
           </Button>
