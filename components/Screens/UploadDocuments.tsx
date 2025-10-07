@@ -16,6 +16,7 @@ export function UploadScreen({ setIsUploaded }: { setIsUploaded?: (isUploaded: b
     const { toast } = useToast()
     const [dragActive, setDragActive] = useState(false)
     // const [isUploaded, setIsUploaded] = useState(false)
+    const [isAnalyzing, setIsAnalyzing] = useState(false)
 
     const handleFileUpload = (files: FileList | null) => {
         if (!files) return
@@ -69,7 +70,7 @@ export function UploadScreen({ setIsUploaded }: { setIsUploaded?: (isUploaded: b
     }
 
     const handleAnalyze = () => {
-
+        setIsAnalyzing(true)
         if (documents.length === 0) {
             toast({
                 title: "No documents",
@@ -85,14 +86,19 @@ export function UploadScreen({ setIsUploaded }: { setIsUploaded?: (isUploaded: b
                 updateDocument(doc.id, { status: 'processing' })
                 setTimeout(() => {
                     updateDocument(doc.id, { status: 'processed' })
-                }, 2000)
+                }, 5000)
+            }
+            else if (doc.status === 'processed') {
+                setTimeout(() => {
+                }, 3000)
             }
         })
-
-        setTimeout(() => {
-            setCurrentStep('credit-passport')
-        }, 3000)
         setIsUploaded?.(true)
+        setIsAnalyzing(false)
+        // setTimeout(() => {
+        //     setCurrentStep('credit-passport')
+        // }, 3000);
+
 
 
     }
@@ -114,96 +120,96 @@ export function UploadScreen({ setIsUploaded }: { setIsUploaded?: (isUploaded: b
 
     return (
         <div className="min-h-screen bg-gray-50 p-6">
-            <div className="max-w-2xl mx-auto">
-                <div className="text-center mb-8">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">Document Upload</h2>
-                    <p className="text-gray-600">Upload your financial documents for analysis</p>
-                </div>
-
-                <Card className="p-8">
-                    <div className="space-y-6">
-                        <div
-                            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
-                                }`}
-                            onDragEnter={handleDrag}
-                            onDragLeave={handleDrag}
-                            onDragOver={handleDrag}
-                            onDrop={handleDrop}
-                        >
-                            <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                            <h3 className="text-lg font-semibold mb-2">Upload Documents</h3>
-                            <p className="text-gray-600 mb-4">
-                                Drag and drop files or click to browse
-                            </p>
-                            <p className="text-sm text-gray-500 mb-4">
-                                Supported formats: PDF, JPG, PNG (Max 10MB per file)
-                            </p>
-                            <input
-                                type="file"
-                                onChange={(e) => handleFileUpload(e.target.files)}
-                                className="hidden"
-                                id="fileUpload"
-                                accept=".pdf,.jpg,.jpeg,.png"
-                                multiple
-                            />
-                            <Button onClick={() => document.getElementById('fileUpload')?.click()}>
-                                Choose Files
-                            </Button>
-                        </div>
-
-                        {documents.length > 0 && (
-                            <div className="space-y-4">
-                                <h4 className="font-semibold">Documents:</h4>
-                                {documents.map((doc) => (
-                                    <div key={doc.id} className="space-y-2">
-                                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                                            {getStatusIcon(doc.status)}
-                                            <div className="flex-1">
-                                                <div className="font-medium">{doc.name}</div>
-                                                <div className="text-sm text-gray-500 capitalize">
-                                                    {doc.type.replace('_', ' ')} • {doc.status}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {doc.status === 'uploading' && doc.uploadProgress !== undefined && (
-                                            <div className="px-3">
-                                                <div className="flex items-center justify-between mb-1">
-                                                    <span className="text-sm font-medium">Uploading...</span>
-                                                    <span className="text-sm text-gray-500">{doc.uploadProgress}%</span>
-                                                </div>
-                                                <Progress value={doc.uploadProgress} className="w-full" />
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-
-                                <Button
-                                    className="w-full mt-4"
-                                    onClick={handleAnalyze}
-                                    disabled={documents.some(doc => doc.status === 'uploading' || doc.status === 'processing')}
-                                >
-                                    {documents.some(doc => doc.status === 'processing') ? 'Processing...' : 'Analyze Documents'}
-                                </Button>
-                            </div>
-                        )}
-
-                        <div className="bg-blue-50 p-4 rounded-lg">
-                            <h4 className="font-semibold text-blue-900 mb-2">Document Requirements:</h4>
-                            <ul className="text-sm text-blue-800 space-y-1">
-                                <li>• Bank statements for the last 12 months</li>
-                                <li>• GST returns for the last 12 months</li>
-                                <li>• Latest financial statements (if available)</li>
-                                <li>• All documents should be clear and readable</li>
-                            </ul>
-                        </div>
-                    </div>
-                </Card>
-            </div>
             {
-                documents.some(doc => doc.status === 'processing') && (
-                    <AnalyzingScreen documents={documents} />
-                )
+                isAnalyzing ? <AnalyzingScreen documents={documents} /> :
+
+                    <div className="max-w-2xl mx-auto">
+                        <div className="text-center mb-8">
+                            <h2 className="text-3xl font-bold text-gray-900 mb-2">Document Upload</h2>
+                            <p className="text-gray-600">Upload your financial documents for analysis</p>
+                        </div>
+
+                        <Card className="p-8">
+                            <div className="space-y-6">
+                                <div
+                                    className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+                                        }`}
+                                    onDragEnter={handleDrag}
+                                    onDragLeave={handleDrag}
+                                    onDragOver={handleDrag}
+                                    onDrop={handleDrop}
+                                >
+                                    <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                                    <h3 className="text-lg font-semibold mb-2">Upload Documents</h3>
+                                    <p className="text-gray-600 mb-4">
+                                        Drag and drop files or click to browse
+                                    </p>
+                                    <p className="text-sm text-gray-500 mb-4">
+                                        Supported formats: PDF, JPG, PNG (Max 10MB per file)
+                                    </p>
+                                    <input
+                                        type="file"
+                                        onChange={(e) => handleFileUpload(e.target.files)}
+                                        className="hidden"
+                                        id="fileUpload"
+                                        accept=".pdf,.jpg,.jpeg,.png"
+                                        multiple
+                                    />
+                                    <Button onClick={() => document.getElementById('fileUpload')?.click()}>
+                                        Choose Files
+                                    </Button>
+                                </div>
+
+                                {documents.length > 0 && (
+                                    <div className="space-y-4">
+                                        <h4 className="font-semibold">Documents:</h4>
+                                        {documents.map((doc) => (
+                                            <div key={doc.id} className="space-y-2">
+                                                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                                                    {getStatusIcon(doc.status)}
+                                                    <div className="flex-1">
+                                                        <div className="font-medium">{doc.name}</div>
+                                                        <div className="text-sm text-gray-500 capitalize">
+                                                            {doc.type.replace('_', ' ')} • {doc.status}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {doc.status === 'uploading' && doc.uploadProgress !== undefined && (
+                                                    <div className="px-3">
+                                                        <div className="flex items-center justify-between mb-1">
+                                                            <span className="text-sm font-medium">Uploading...</span>
+                                                            <span className="text-sm text-gray-500">{doc.uploadProgress}%</span>
+                                                        </div>
+                                                        <Progress value={doc.uploadProgress} className="w-full" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+
+                                        <Button
+                                            className="w-full mt-4"
+                                            onClick={handleAnalyze}
+                                            disabled={documents.some(doc => doc.status === 'uploading' || doc.status === 'processing')}
+                                        >
+                                            {documents.some(doc => doc.status === 'processing') ? 'Processing...' : 'Analyze Documents'}
+                                        </Button>
+                                    </div>
+                                )}
+
+                                <div className="bg-blue-50 p-4 rounded-lg">
+                                    <h4 className="font-semibold text-blue-900 mb-2">Document Requirements:</h4>
+                                    <ul className="text-sm text-blue-800 space-y-1">
+                                        <li>• Bank statements for the last 12 months</li>
+                                        <li>• GST returns for the last 12 months</li>
+                                        <li>• Latest financial statements (if available)</li>
+                                        <li>• All documents should be clear and readable</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </Card>
+                    </div>
             }
+
         </div>
     )
 }
