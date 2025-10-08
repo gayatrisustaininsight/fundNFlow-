@@ -2,10 +2,10 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAppStore } from '@/store/appStore'
 import { OnboardingScreen } from '@/components/Screens/OnBoardingScreen'
-import { LoanMatchesScreen } from '@/components/Screens/LoanMatchesScreen'
+import LoanMatchesScreen from '@/components/Screens/LoanMatchesScreen'
 import { DashboardScreen } from '@/components/Screens/DashboardScreen'
-import { CreditPassportScreen } from '@/components/Screens/CreditPassportScreen'
-import { UploadScreen } from '@/components/Screens/UploadDocuments'
+import CreditPassportScreen from '@/components/Screens/CreditPassportScreen'
+import UploadScreen from '@/components/Screens/UploadDocuments'
 import { WelcomeScreen } from '@/components/Screens/WellcomeScreen'
 
 const pageVariants = {
