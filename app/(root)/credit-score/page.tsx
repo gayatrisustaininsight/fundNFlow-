@@ -1,9 +1,12 @@
-import { CreditPassportScreen } from '@/components/Screens/CreditPassportScreen'
+'use client'
+import CreditPassportScreen from '@/components/Screens/CreditPassportScreen'
+import { useAppStore } from '@/store/appStore'
 import React from 'react'
 
 const page = () => {
+    const { setCurrentStep } = useAppStore()
     return (
-        <CreditPassportScreen />
+        <CreditPassportScreen onNext={() => setCurrentStep('loan-matches')} />
     )
 }
 

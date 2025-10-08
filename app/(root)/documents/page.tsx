@@ -1,7 +1,7 @@
 'use client'
-import { CreditPassportScreen } from '@/components/Screens/CreditPassportScreen'
-import { LoanMatchesScreen } from '@/components/Screens/LoanMatchesScreen'
-import { UploadScreen } from '@/components/Screens/UploadDocuments'
+import CreditPassportScreen from '@/components/Screens/CreditPassportScreen'
+import LoanMatchesScreen from '@/components/Screens/LoanMatchesScreen'
+import UploadScreen from '@/components/Screens/UploadDocuments'
 import { Stepper } from '@/components/ui/Stepper'
 import { useAppStore } from '@/store/appStore'
 import React, { useEffect } from 'react'
@@ -15,7 +15,7 @@ const DocumentsContent = () => {
         }
     }, [currentStep, setCurrentStep])
     return (
-        <div className='min-h-screen bg-gray-50 p-6'>
+        <div className='min-h-screen w-full bg-gray-50 p-6 flex flex-col justify-center items-center'>
             <Stepper />
             {currentStep === 'upload' && (
                 <UploadScreen />

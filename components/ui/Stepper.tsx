@@ -14,13 +14,13 @@ export function Stepper() {
     const stepIndex = steps.findIndex(s => s.key === currentStep)
 
     return (
-        <div className="max-w-4xl mx-auto mb-6">
-            <div className="flex items-center">
+        <div className="max-w-4xl mx-auto mb-6 w-full">
+            <div className="flex items-center justify-center">
                 {steps.map((step, index) => {
                     const isCompleted = index < stepIndex
                     const isActive = index === stepIndex
                     return (
-                        <div key={step.key} className="flex items-center w-full">
+                        <div key={step.key} className="flex items-center">
                             <button
                                 className={`flex flex-col items-center text-sm ${isActive ? 'text-blue-700' : isCompleted ? 'text-green-700' : 'text-gray-500'}`}
                                 onClick={() => {
@@ -31,7 +31,7 @@ export function Stepper() {
                                 <span>{step.label}</span>
                             </button>
                             {index < steps.length - 1 && (
-                                <div className={`flex-1 h-1 mx-4 ${index < stepIndex ? 'bg-green-600' : 'bg-gray-200'}`} />
+                                <div className={`w-20    h-1 mx-4 ${index < stepIndex ? 'bg-green-600' : 'bg-gray-200'}`} />
                             )}
                         </div>
                     )
