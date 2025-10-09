@@ -40,7 +40,6 @@ pipeline {
                         rsync -avz --delete \
                             --exclude 'node_modules' \
                             --exclude '.git' \
-                            --exclude '.next' \
                             ./ ${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/
                         
                         ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_HOST} << 'ENDSSH'
