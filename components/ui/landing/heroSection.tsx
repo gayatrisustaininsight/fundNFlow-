@@ -23,10 +23,21 @@ const HeroSection = () => {
     const { request } = useApi()
     const { toast } = useToast();
     const router = useRouter();
+    const waPhone = useMemo(() => {
+        const configured = process.env.NEXT_PUBLIC_WHATSAPP_PHONE || "919999999999"
+        return configured.replace(/[^0-9]/g, "")
+    }, [])
     const waLink = useMemo(() => {
         const text = encodeURIComponent(`Hi, I want to apply for a loan. Name: ${name || ""}, Email: ${email || ""}, Mobile: ${mobileNumber || ""}, Amount: ${loanAmount || ""}`)
-        return `https://wa.me/+918714 21515?text=${text}`
-    }, [name, email, mobileNumber, loanAmount])
+        return `https://wa.me/${waPhone}?text=${text}`
+    }, [name, email, mobileNumber, loanAmount, waPhone])
+    const handleWhatsApp = () => {
+        if (!waPhone || waPhone.length < 8 || waPhone.length > 15) {
+            toast({ title: "Invalid WhatsApp number" })
+            return
+        }
+        window.open(waLink, "_blank")
+    }
     const handleSubmit = async () => {
         if (!name || !email || !mobileNumber || !loanAmount) {
             toast({ title: "Please fill all fields" })
@@ -162,8 +173,8 @@ const HeroSection = () => {
                                     <Button size="lg" className="w-full" onClick={handleSubmit} disabled={submitting}>
                                         {submitting ? "Submitting..." : "Submit Details"}
                                     </Button>
-                                    <Button size="lg" asChild className="w-full bg-green-600 text-white hover:bg-green-700">
-                                        <a href={waLink} target="_blank" rel="noopener noreferrer">Contact on WhatsApp</a>
+                                    <Button size="lg" className="w-full bg-green-600 text-white hover:bg-green-700" onClick={handleWhatsApp}>
+                                        Contact on WhatsApp
                                     </Button>
                                 </div>
                                 <p className="text-sm text-gray-500 text-center mt-4">
