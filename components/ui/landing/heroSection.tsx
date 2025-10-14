@@ -1,3 +1,4 @@
+"use client"
 import { motion } from "framer-motion"
 import { Badge } from "../badge"
 import { Sparkles } from "lucide-react"
@@ -6,10 +7,50 @@ import { ArrowRight } from "lucide-react"
 import { CheckCircle } from "lucide-react"
 import { Building2 } from "lucide-react"
 import { Progress } from "../Progress"
-import { useState } from "react"
+import { useMemo, useState } from "react"
+import { Input } from "../Input"
+import { useApi } from "@/hooks/useApi"
+import { useToast } from "@/hooks/use-toast"
+import { useRouter } from "next/navigation"
 
 const HeroSection = () => {
     const [currentPage, setCurrentPage] = useState('landing')
+    const [name, setName] = useState("")
+    const [email, setEmail] = useState("")
+    const [mobileNumber, setMobileNumber] = useState("")
+    const [loanAmount, setLoanAmount] = useState("")
+    const [submitting, setSubmitting] = useState(false)
+    const { request } = useApi()
+    const { toast } = useToast();
+    const router = useRouter();
+    const waLink = useMemo(() => {
+        const text = encodeURIComponent(`Hi, I want to apply for a loan. Name: ${name || ""}, Email: ${email || ""}, Mobile: ${mobileNumber || ""}, Amount: ${loanAmount || ""}`)
+        return `https://wa.me/+918714 21515?text=${text}`
+    }, [name, email, mobileNumber, loanAmount])
+    const handleSubmit = async () => {
+        if (!name || !email || !mobileNumber || !loanAmount) {
+            toast({ title: "Please fill all fields" })
+            return
+        }
+        setSubmitting(true)
+        try {
+            await request("post", "/fundnflow/lead", {
+                email,
+                name,
+                loanAmount: Number(loanAmount),
+                mobileNumber,
+            })
+            toast({ title: "Submitted" })
+            setName("")
+            setEmail("")
+            setMobileNumber("")
+            setLoanAmount("")
+        } catch (e) {
+            toast({ title: "Submission failed" })
+        } finally {
+            setSubmitting(false)
+        }
+    }
     return (
         <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-16 md:py-20 px-4">
             <div className="max-w-7xl mx-auto">
@@ -55,7 +96,7 @@ const HeroSection = () => {
                             transition={{ duration: 0.6, delay: 0.5 }}
                             className="flex flex-col sm:flex-row gap-3 sm:gap-4"
                         >
-                            <Button size="lg" className="text-lg px-8" onClick={() => setCurrentPage('onboarding')}>
+                            <Button size="lg" className="text-lg px-8" onClick={() => router.push('/signup')}>
                                 Get Started Free
                                 <ArrowRight className="w-5 h-5 ml-2" />
                             </Button>
@@ -97,52 +138,37 @@ const HeroSection = () => {
                             className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8"
                         >
                             <div className="flex items-center justify-between mb-6">
-                                <h3 className="text-xl md:text-2xl font-bold">Credit Assessment</h3>
-                                <Badge className="bg-green-100 text-green-700">Live</Badge>
+                                <h3 className="text-xl md:text-2xl font-bold">Contact to our Advisor </h3>
+                                <Badge className="bg-green-100 text-green-700">Quick Connect response within 5 mins</Badge>
                             </div>
-                            <div className="space-y-6">
-                                <motion.div
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ duration: 0.5, delay: 0.8 }}
-                                    className="flex items-center justify-between p-4 bg-gray-50 rounded-xl"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                                            <Building2 className="w-5 h-5 text-blue-600" />
-                                        </div>
-                                        <div>
-                                            <div className="font-semibold">Business Verified</div>
-                                            <div className="text-sm text-gray-500">PAN & GST Validated</div>
-                                        </div>
-                                    </div>
-                                    <CheckCircle className="w-6 h-6 text-green-600" />
-                                </motion.div>
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.8 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ duration: 0.5, delay: 1 }}
-                                    className="text-center"
-                                >
-                                    <div className="text-4xl md:text-5xl font-bold text-blue-600 mb-2">72/100</div>
-                                    <div className="text-gray-600 mb-4">GraphScore</div>
-                                    <Progress value={72} className="h-3" />
-                                </motion.div>
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.5, delay: 1.2 }}
-                                    className="grid grid-cols-2 gap-4"
-                                >
-                                    <div className="p-3 bg-green-50 rounded-lg text-center">
-                                        <div className="text-2xl font-bold text-green-600">₹45L</div>
-                                        <div className="text-sm text-gray-600">Max Amount</div>
-                                    </div>
-                                    <div className="p-3 bg-blue-50 rounded-lg text-center">
-                                        <div className="text-2xl font-bold text-blue-600">13.5%</div>
-                                        <div className="text-sm text-gray-600">Best Rate</div>
-                                    </div>
-                                </motion.div>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                                    <Input type="text" placeholder="Enter your name" value={name} onChange={(e) => setName(e.target.value)} />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                                    <Input type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
+                                    <Input type="tel" placeholder="Enter mobile number" value={mobileNumber} onChange={(e) => setMobileNumber(e.target.value)} />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Loan Amount</label>
+                                    <Input type="number" placeholder="Enter amount in ₹" value={loanAmount} onChange={(e) => setLoanAmount(e.target.value)} />
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <Button size="lg" className="w-full" onClick={handleSubmit} disabled={submitting}>
+                                        {submitting ? "Submitting..." : "Submit Details"}
+                                    </Button>
+                                    <Button size="lg" asChild className="w-full bg-green-600 text-white hover:bg-green-700">
+                                        <a href={waLink} target="_blank" rel="noopener noreferrer">Contact on WhatsApp</a>
+                                    </Button>
+                                </div>
+                                <p className="text-sm text-gray-500 text-center mt-4">
+                                    We'll get back to you within 5 mins
+                                </p>
                             </div>
                         </motion.div>
                     </motion.div>

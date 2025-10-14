@@ -4,419 +4,239 @@ import { Card } from '@/components/ui/Card'
 import { Label } from '@/components/ui/Label'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
-import {
-    Building2, FileText, Phone, Mail, ArrowRight, Shield,
-    EyeOff, Eye, Lock, CheckCircle, Sparkles
-} from 'lucide-react'
-import { useAppStore } from '@/store/appStore'
-import { useToast } from '@/hooks/use-toast'
+import { Building2, FileText, Phone, Mail, ArrowRight, Shield, CheckCircle, Sparkles, ArrowLeft, Loader2 } from 'lucide-react'
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useAuthStore } from '@/store/authStore'
 
-const OnboardingPage = () => {
-    const router = useRouter()
-    const { toast } = useToast()
-    const [step, setStep] = useState<1 | 2>(1) // Track which step we're on
+type FormState = {
+    businessName: string
+    pan: string
+    gstin: string
+    mobile: string
+    email: string
+    otp: string
+}
+
+const ConsolidatedOnboarding = () => {
+    const [step, setStep] = useState(1)
+    const [formData, setFormData] = useState<FormState>({ businessName: '', pan: '', gstin: '', mobile: '', email: '', otp: '' })
     const [otpSent, setOtpSent] = useState(false)
-    const [showPassword, setShowPassword] = useState(false)
-    const [formData, setFormData] = useState({
-        businessName: '',
-        panGstin: '',
-        mobile: '',
-        email: '',
-        password: '',
-        otp: ''
-    })
+    const [isLoading, setIsLoading] = useState(false)
+    const [panVerified, setPanVerified] = useState<null | boolean>(null)
+    const [gstVerified, setGstVerified] = useState<null | boolean>(null)
+    const { verifyPAN, isVerifyingPAN } = useAuthStore()
 
-    // Handle OTP sending
-    const handleSendOTP = () => {
-        if (!formData.mobile || formData.mobile.length !== 10) {
-            toast({
-                title: "Invalid Mobile",
-                description: "Please enter a valid 10-digit mobile number",
-                variant: "destructive"
-            })
-            return
-        }
-
-        // TODO: Call your OTP API here
-        setOtpSent(true)
-        toast({
-            title: "OTP Sent!",
-            description: `Verification code sent to ${formData.mobile}`
-        })
+    const updateField = (field: keyof FormState, value: string) => {
+        setFormData(prev => ({ ...prev, [field]: value }))
     }
 
-    // Handle Step 1 submission
-    const handleStep1Continue = (e: React.FormEvent) => {
-        e.preventDefault()
+    const handleSendOTP = async () => {
+        setIsLoading(true)
+        setTimeout(() => {
+            setIsLoading(false)
+            setOtpSent(true)
+        }, 1200)
+    }
 
-        if (!formData.mobile || !formData.otp || !formData.businessName) {
-            toast({
-                title: "Missing Fields",
-                description: "Please fill all required fields",
-                variant: "destructive"
-            })
-            return
+    const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]$/
+    const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/
+
+    const handleValidatePAN = async () => {
+        const isFormatValid = panRegex.test(formData.pan)
+        setPanVerified(isFormatValid)
+        if (!isFormatValid) return
+        try {
+            const isServerValid = await verifyPAN(formData.pan)
+            setPanVerified(isServerValid)
+        } catch {
+            setPanVerified(false)
         }
+    }
 
-        // Verify OTP here (TODO: Add your OTP verification)
-        toast({
-            title: "Mobile Verified! ✓",
-            description: "Let's complete your profile"
-        })
+    const handleValidateGST = () => {
+        const isGSTValid = !formData.gstin || gstRegex.test(formData.gstin)
+        setGstVerified(isGSTValid)
+    }
 
+    const handleContinue = async () => {
+        const panOk = panRegex.test(formData.pan)
+        const gstOk = !formData.gstin || gstRegex.test(formData.gstin)
+        const mobileOk = formData.mobile && formData.mobile.length === 10
+        const emailOk = !!formData.email
+        setPanVerified(panOk)
+        setGstVerified(gstOk)
+        if (!formData.businessName || !panOk || !gstOk || !mobileOk || !emailOk) return
+        await handleSendOTP()
         setStep(2)
     }
 
-    // Handle final submission
-    const handleFinalSubmit = (e: React.FormEvent) => {
-        e.preventDefault()
-
-        if (!formData.panGstin || !formData.email) {
-            toast({
-                title: "Missing Fields",
-                description: "Please fill all required fields",
-                variant: "destructive"
-            })
-            return
-        }
-
-        // Save to store or API
-        toast({
-            title: "Success!",
-            description: "Redirecting to dashboard..."
-        })
-
-        setTimeout(() => {
-            router.push('/dashboard')
-        }, 1000)
+    const handleContinueToVerification = () => {
+        if (!formData.businessName || !formData.pan || !formData.mobile || !formData.email) return
+        setStep(2)
     }
+
+    const handleComplete = () => {
+        if (!formData.otp || formData.otp.length !== 6) return
+    }
+
+    const progress = (step / 2) * 100
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-            <div className="max-w-2xl mx-auto p-6 py-12">
-                {/* Header */}
-                <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
-                    className="text-center mb-8"
-                >
-                    <motion.div
-                        animate={{ rotate: [0, 5, -5, 0] }}
-                        transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-                        className="inline-block mb-4"
-                    >
+            <div className="max-w-3xl mx-auto p-6 py-12">
+                <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="text-center mb-8">
+                    <motion.div animate={{ rotate: [0, 5, -5, 0] }} transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }} className="inline-block mb-4">
                         <Sparkles className="w-12 h-12 text-blue-600 mx-auto" />
                     </motion.div>
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                        Welcome to FundanFlow
-                    </h2>
-                    <p className="text-gray-600 ">
-                        {step === 1
-                            ? "Quick start - just 3 fields! ⚡"
-                            : "Almost there! Complete your profile 🎯"
-                        }
-                    </p>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome to FundanFlow</h2>
+                    <p className="text-gray-600">Get started in just 2 simple steps!</p>
                 </motion.div>
 
-                {/* Progress Bar */}
                 <div className="mb-8">
                     <div className="flex items-center justify-between mb-3">
-                        <span className="text-sm font-semibold text-gray-700">
-                            Step {step} of 2
-                        </span>
-                        <span className="text-sm text-blue-600 font-medium">
-                            {step === 1 ? '50%' : '100%'} Complete
-                        </span>
+                        <span className="text-sm font-semibold text-gray-700">Step {step} of 2</span>
+                        <span className="text-sm text-blue-600 font-medium">{Math.round(progress)}% Complete</span>
                     </div>
                     <div className="h-2.5 bg-gray-200 rounded-full overflow-hidden">
-                        <motion.div
-                            initial={{ width: '0%' }}
-                            animate={{ width: step === 1 ? '50%' : '100%' }}
-                            transition={{ duration: 0.6, ease: "easeOut" }}
-                            className="h-full bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg"
-                        />
+                        <motion.div initial={{ width: '0%' }} animate={{ width: `${progress}%` }} transition={{ duration: 0.6, ease: 'easeOut' }} className="h-full bg-gradient-to-r from-blue-500 to-blue-600" />
                     </div>
-                    <p className="text-xs text-gray-500 mt-2 text-center">
-                        ⏱️ About {step === 1 ? '1' : '2'} minute remaining
-                    </p>
                 </div>
 
-                {/* Forms with Animation */}
                 <AnimatePresence mode="wait">
-                    {step === 1 ? (
-                        /* ============================================
-                           STEP 1: QUICK START (Mobile + Business Name)
-                           ============================================ */
-                        <motion.div
-                            key="step1"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            transition={{ duration: 0.3 }}
-                        >
+                    {step === 1 && (
+                        <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}>
                             <Card className="p-8 shadow-xl">
-                                <form onSubmit={handleStep1Continue} className="space-y-6">
+                                <div className="text-center mb-6">
+                                    <Building2 className="w-12 h-12 text-blue-600 mx-auto mb-3" />
+                                    <h3 className="text-2xl font-semibold">Business Information</h3>
+                                    <p className="text-gray-600 text-sm mt-2">Tell us about your business</p>
+                                </div>
 
-                                    {/* Business Name */}
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: 0.1 }}
-                                    >
-                                        <Label htmlFor="businessName" className="flex items-center gap-2 mb-2 text-sm font-semibold">
-                                            <Building2 className="w-4 h-4 text-blue-600" />
-                                            Business Name
-                                            <span className="text-red-500">*</span>
-                                        </Label>
-                                        <Input
-                                            id="businessName"
-                                            placeholder="e.g., Green Tech Solutions"
-                                            value={formData.businessName}
-                                            onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
-                                            className=""
-                                            required
-                                        />
-                                        <p className="text-xs text-gray-500 mt-1.5">
-                                            Use your registered business name
-                                        </p>
-                                    </motion.div>
+                                <div className="space-y-6">
+                                    <div>
+                                        <Label className="flex items-center gap-2 mb-2 text-sm font-semibold"><Building2 className="w-4 h-4 text-blue-600" />Business Name <span className="text-red-500">*</span></Label>
+                                        <Input placeholder="e.g., Green Tech Solutions Pvt Ltd" value={formData.businessName} onChange={(e) => updateField('businessName', e.target.value)} />
+                                    </div>
 
-                                    {/* Mobile Number */}
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: 0.2 }}
-                                    >
-                                        <Label htmlFor="mobile" className="flex items-center gap-2 mb-2 text-sm font-semibold">
-                                            <Phone className="w-4 h-4 text-blue-600" />
-                                            Mobile Number
-                                            <span className="text-red-500">*</span>
-                                        </Label>
-                                        <div className="flex gap-2">
-                                            <Input
-                                                id="mobile"
-                                                type="tel"
-                                                maxLength={10}
-                                                placeholder="9876543210"
-                                                value={formData.mobile}
-                                                onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
-                                                className=""
-                                                required
-                                            />
-                                            <Button
-                                                type="button"
-                                                onClick={handleSendOTP}
-                                                disabled={otpSent}
-                                                className={otpSent ? 'bg-green-600 hover:bg-green-700' : ''}
-                                            >
-                                                {otpSent ? '✓ Sent' : 'Send OTP'}
-                                            </Button>
+                                    <div className="grid md:grid-cols-2 gap-4">
+                                        <div>
+                                            <Label className="flex items-center gap-2 mb-2 text-sm font-semibold"><FileText className="w-4 h-4 text-blue-600" />PAN Number <span className="text-red-500">*</span></Label>
+                                            <div className="flex gap-2">
+                                                <Input placeholder="ABCDE1234F" className="uppercase" maxLength={10} value={formData.pan} onChange={(e) => updateField('pan', e.target.value.toUpperCase())} />
+                                                <Button onClick={handleValidatePAN} variant="outline" size="sm" disabled={!formData.pan || isVerifyingPAN}>
+                                                    {isVerifyingPAN ? 'Verifying...' : 'Verify'}
+                                                </Button>
+                                            </div>
+                                            <p className="text-xs text-gray-500 mt-1">10-digit PAN number</p>
+                                            {panVerified !== null && (
+                                                <p className={`text-xs mt-1 ${panVerified ? 'text-green-600' : 'text-red-600'}`}>
+                                                    {panVerified ? 'PAN looks valid' : 'Invalid PAN format'}
+                                                </p>
+                                            )}
                                         </div>
-                                        <p className="text-xs text-gray-500 mt-1.5 flex items-center gap-1">
-                                            🔒 We'll send a 6-digit verification code
-                                        </p>
-                                    </motion.div>
+                                        <div>
+                                            <Label className="flex items-center gap-2 mb-2 text-sm font-semibold"><FileText className="w-4 h-4 text-blue-600" />GSTIN <span className="text-gray-400">(Optional)</span></Label>
+                                            <div className="flex gap-2">
+                                                <Input placeholder="22ABCDE1234F1Z5" className="uppercase" maxLength={15} value={formData.gstin} onChange={(e) => updateField('gstin', e.target.value.toUpperCase())} />
+                                                <Button onClick={handleValidateGST} size="sm">
+                                                    Validate
+                                                </Button>
+                                            </div>
+                                            <p className="text-xs text-gray-500 mt-1">15-digit GSTIN</p>
+                                            {gstVerified !== null && (
+                                                <p className={`text-xs mt-1 ${gstVerified ? 'text-green-600' : 'text-red-600'}`}>
+                                                    {gstVerified ? 'GSTIN looks valid' : 'Invalid GSTIN format'}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
 
-                                    {/* OTP Field (shows after Send OTP clicked) */}
-                                    {otpSent && (
-                                        <motion.div
-                                            initial={{ opacity: 0, height: 0 }}
-                                            animate={{ opacity: 1, height: 'auto' }}
-                                            transition={{ duration: 0.3 }}
-                                        >
-                                            <Label htmlFor="otp" className="flex items-center gap-2 mb-2 text-sm font-semibold">
-                                                <CheckCircle className="w-4 h-4 text-green-600" />
-                                                Enter OTP
-                                                <span className="text-red-500">*</span>
-                                            </Label>
-                                            <Input
-                                                id="otp"
-                                                type="text"
-                                                maxLength={6}
-                                                placeholder="123456"
-                                                value={formData.otp}
-                                                onChange={(e) => setFormData({ ...formData, otp: e.target.value })}
-                                                className=" tracking-widest text-center font-mono"
-                                                required
-                                            />
-                                            <p className="text-xs text-gray-500 mt-1.5">
-                                                Didn't receive? <button type="button" onClick={handleSendOTP} className="text-blue-600 font-semibold hover:underline">Resend OTP</button>
-                                            </p>
-                                        </motion.div>
-                                    )}
+                                    <div className="grid md:grid-cols-2 gap-4">
+                                        <div>
+                                            <Label className="flex items-center gap-2 mb-2 text-sm font-semibold"><Phone className="w-4 h-4 text-blue-600" />Mobile Number <span className="text-red-500">*</span></Label>
+                                            <Input type="tel" placeholder="9876543210" maxLength={10} value={formData.mobile} onChange={(e) => updateField('mobile', e.target.value)} />
+                                        </div>
+                                        <div>
+                                            <Label className="flex items-center gap-2 mb-2 text-sm font-semibold"><Mail className="w-4 h-4 text-blue-600" />Email Address <span className="text-red-500">*</span></Label>
+                                            <Input type="email" placeholder="owner@company.com" value={formData.email} onChange={(e) => updateField('email', e.target.value)} />
+                                        </div>
+                                    </div>
 
-                                    {/* Continue Button */}
-                                    <motion.div
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
-                                    >
-                                        <Button
-                                            type="submit"
-                                            className="w-full"
-                                            size="lg"
-                                            disabled={!otpSent || !formData.otp || !formData.businessName}
-                                        >
+                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                        <div className="flex gap-3">
+                                            <Shield className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                                            <div>
+                                                <p className="text-sm font-semibold text-blue-900 mb-1">Your information is secure</p>
+                                                <p className="text-xs text-blue-700">We use bank-level encryption to protect your data.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <Button onClick={handleContinue} className="w-full" size="lg">
                                             Continue
                                             <ArrowRight className="w-5 h-5 ml-2" />
                                         </Button>
-                                    </motion.div>
-
-                                    {/* Security Badge */}
-                                    <div className="flex items-center justify-center gap-2 text-sm text-gray-500 pt-4 border-t">
-                                        <Shield className="w-4 h-4" />
-                                        <span>Your data is encrypted and secure</span>
                                     </div>
-                                </form>
+                                </div>
                             </Card>
                         </motion.div>
-                    ) : (
-                        /* ============================================
-                           STEP 2: COMPLETE PROFILE (PAN, Email, Password)
-                           ============================================ */
-                        <motion.div
-                            key="step2"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            transition={{ duration: 0.3 }}
-                        >
+                    )}
+
+                    {step === 2 && (
+                        <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}>
                             <Card className="p-8 shadow-xl">
-                                {/* Success Message */}
-                                <motion.div
-                                    initial={{ scale: 0.8, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    className="mb-6 p-4 bg-green-50 border-2 border-green-200 rounded-xl flex items-center gap-3"
-                                >
-                                    <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0" />
-                                    <div>
-                                        <p className="font-semibold text-green-900">Mobile Verified! 🎉</p>
-                                        <p className="text-sm text-green-700">Just 3 more fields to go</p>
+                                <div className="text-center mb-6">
+                                    <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-3" />
+                                    <h3 className="text-2xl font-semibold">Verify Your Mobile</h3>
+                                    <p className="text-gray-600 text-sm mt-2">We'll send a verification code to {formData.mobile}</p>
+                                </div>
+
+                                <div className="space-y-6">
+                                    <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                                        <div className="flex justify-between text-sm"><span className="text-gray-600">Business Name:</span><span className="font-semibold">{formData.businessName}</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-gray-600">PAN:</span><span className="font-semibold">{formData.pan}</span></div>
+                                        {formData.gstin && <div className="flex justify-between text-sm"><span className="text-gray-600">GSTIN:</span><span className="font-semibold">{formData.gstin}</span></div>}
+                                        <div className="flex justify-between text-sm"><span className="text-gray-600">Email:</span><span className="font-semibold">{formData.email}</span></div>
                                     </div>
-                                </motion.div>
 
-                                <form onSubmit={handleFinalSubmit} className="space-y-6">
-
-                                    {/* PAN/GSTIN */}
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: 0.1 }}
-                                    >
-                                        <Label htmlFor="panGstin" className="flex items-center gap-2 mb-2 text-sm font-semibold">
-                                            <FileText className="w-4 h-4 text-blue-600" />
-                                            PAN/GSTIN
-                                            <span className="text-red-500">*</span>
-                                        </Label>
-                                        <Input
-                                            id="panGstin"
-                                            placeholder="ABCDE1234F or 22ABCDE1234F1Z5"
-                                            value={formData.panGstin}
-                                            onChange={(e) => setFormData({ ...formData, panGstin: e.target.value.toUpperCase() })}
-                                            className=" uppercase"
-                                            required
-                                        />
-                                        <p className="text-xs text-gray-500 mt-1.5">
-                                            Enter your PAN or GSTIN number
-                                        </p>
-                                    </motion.div>
-
-                                    {/* Email */}
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: 0.2 }}
-                                    >
-                                        <Label htmlFor="email" className="flex items-center gap-2 mb-2 text-sm font-semibold">
-                                            <Mail className="w-4 h-4 text-blue-600" />
-                                            Email Address
-                                            <span className="text-red-500">*</span>
-                                        </Label>
-                                        <Input
-                                            id="email"
-                                            type="email"
-                                            placeholder="your.email@company.com"
-                                            value={formData.email}
-                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                            className=""
-                                            required
-                                        />
-                                    </motion.div>
-
-                                    {/* Password (Optional) */}
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: 0.3 }}
-                                    >
-                                        <Label htmlFor="password" className="flex items-center gap-2 mb-2 text-sm font-semibold">
-                                            <Lock className="w-4 h-4 text-blue-600" />
-                                            Password
-                                            <span className="text-gray-500 text-xs font-normal">(Optional - use OTP login)</span>
-                                        </Label>
-                                        <div className="relative">
-                                            <Input
-                                                id="password"
-                                                type={showPassword ? "text" : "password"}
-                                                placeholder="Create a password (optional)"
-                                                value={formData.password}
-                                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                                className=" pr-10"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowPassword(!showPassword)}
-                                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                            >
-                                                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                            </button>
-                                        </div>
-                                        <p className="text-xs text-gray-500 mt-1.5">
-                                            Skip this to always use OTP-based login
-                                        </p>
-                                    </motion.div>
-
-                                    {/* Buttons */}
-                                    <div className="flex gap-3 pt-4">
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            onClick={() => setStep(1)}
-                                            className="flex-1"
-                                        >
-                                            ← Back
-                                        </Button>
-                                        <motion.div
-                                            className="flex-1"
-                                            whileHover={{ scale: 1.02 }}
-                                            whileTap={{ scale: 0.98 }}
-                                        >
-                                            <Button
-                                                type="submit"
-                                                className="w-full"
-                                                size="lg"
-                                            >
-                                                Continue to Dashboard
-                                                <ArrowRight className="w-5 h-5 ml-2" />
+                                    {!otpSent ? (
+                                        <div className="text-center py-4">
+                                            <p className="text-gray-600 mb-4">Click below to receive a verification code</p>
+                                            <Button onClick={handleSendOTP} disabled={isLoading} size="lg" className="w-full max-w-xs">
+                                                {isLoading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />Sending OTP...</>) : (<><Phone className="w-4 h-4 mr-2" />Send Verification Code</>)}
                                             </Button>
-                                        </motion.div>
-                                    </div>
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <Label className="flex items-center gap-2 mb-2 text-sm font-semibold"><CheckCircle className="w-4 h-4 text-green-600" />Enter 6-Digit OTP <span className="text-red-500">*</span></Label>
+                                            <Input type="text" maxLength={6} placeholder="● ● ● ● ● ●" className="tracking-widest text-center font-mono text-2xl h-14" value={formData.otp} onChange={(e) => updateField('otp', e.target.value)} />
+                                            <p className="text-xs text-gray-500 mt-2 text-center">
+                                                Didn't receive the code? <button onClick={handleSendOTP} className="text-blue-600 hover:underline font-semibold">Resend</button>
+                                            </p>
+                                        </div>
+                                    )}
 
-                                    {/* Security Badge */}
-                                    <div className="flex items-center justify-center gap-2 text-sm text-gray-500 pt-4 border-t">
-                                        <Shield className="w-4 h-4" />
-                                        <span>256-bit SSL encryption</span>
+                                    <div className="flex gap-3 pt-4">
+                                        <Button variant="outline" onClick={() => setStep(1)} className="flex-1">
+                                            <ArrowLeft className="w-4 h-4 mr-2" />
+                                            Back
+                                        </Button>
+                                        <Button onClick={handleComplete} className="flex-1" disabled={!otpSent || !formData.otp || formData.otp.length !== 6}>
+                                            Complete Setup
+                                            <CheckCircle className="w-4 h-4 ml-2" />
+                                        </Button>
                                     </div>
-                                </form>
+                                </div>
                             </Card>
                         </motion.div>
                     )}
                 </AnimatePresence>
+
+                <p className="text-center text-sm text-gray-500 mt-6">Need help? <a href="#" className="text-blue-600 hover:underline font-semibold">Contact Support</a></p>
             </div>
         </div>
     )
 }
 
-export default OnboardingPage
+export default ConsolidatedOnboarding
