@@ -24,12 +24,14 @@ const HeroSection = () => {
     const { toast } = useToast();
     const router = useRouter();
     const waPhone = useMemo(() => {
-        const configured = process.env.NEXT_PUBLIC_WHATSAPP_PHONE || "919999999999"
-        return configured.replace(/[^0-9]/g, "")
+        const configured = process.env.NEXT_PUBLIC_WHATSAPP_PHONE || "91871421515"
+        const digits = configured.replace(/[^0-9]/g, "")
+        if (digits.length === 10) return `91${digits}`
+        return digits
     }, [])
     const waLink = useMemo(() => {
         const text = encodeURIComponent(`Hi, I want to apply for a loan. Name: ${name || ""}, Email: ${email || ""}, Mobile: ${mobileNumber || ""}, Amount: ${loanAmount || ""}`)
-        return `https://wa.me/${waPhone}?text=${text}`
+        return `https://api.whatsapp.com/send?phone=${waPhone}&text=${text}`
     }, [name, email, mobileNumber, loanAmount, waPhone])
     const handleWhatsApp = () => {
         if (!waPhone || waPhone.length < 8 || waPhone.length > 15) {
