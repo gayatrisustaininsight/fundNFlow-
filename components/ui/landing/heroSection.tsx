@@ -80,7 +80,7 @@ const HeroSection = () => {
                         >
                             <Badge className="mb-4 bg-blue-100 text-blue-700 border-blue-200 text-lg">
                                 <Sparkles className="w-6 h-6 mr-1" />
-                                AI-Powered Credit Assessment
+                                AI-Powered Loan Approval
                             </Badge>
                         </motion.div>
                         <motion.h1
@@ -100,7 +100,7 @@ const HeroSection = () => {
                             transition={{ duration: 0.6, delay: 0.4 }}
                             className="text-xl text-gray-600 mb-8"
                         >
-                            Get matched with the best loan offers in minutes. Upload your documents,
+                            Get the best loan offers in minutes. Upload your documents,
                             get instant credit scoring, and access funding from 50+ lenders within 48 hours.
                         </motion.p>
                         <motion.div

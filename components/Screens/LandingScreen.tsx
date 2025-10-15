@@ -37,7 +37,7 @@ const LandingPage = () => {
                             { value: '50+', label: 'Lending Partners' },
                             { value: '₹500Cr+', label: 'Loans Disbursed' },
                             { value: '10k+', label: 'SMEs Funded' },
-                            { value: '24hrs', label: 'Avg. Approval Time' }
+                            { value: '48hrs', label: 'Avg. Approval Time' }
                         ].map((stat, index) => (
                             <motion.div
                                 key={index}
@@ -71,7 +71,7 @@ const LandingPage = () => {
                     <div className="text-center mb-16">
                         <Badge className="mb-4 bg-blue-100 text-blue-700">How It Works</Badge>
                         <h2 className="text-4xl font-bold text-gray-900 mb-4">Get Funded in 4 Steps</h2>
-                        <p className="text-xl text-gray-600">From signup to disbursement in 24-48 hours</p>
+                        <p className="text-xl text-gray-600">From signup to disbursement in 48 hours</p>
                     </div>
 
                     <div className="grid md:grid-cols-4 gap-8">
