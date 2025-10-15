@@ -21,7 +21,7 @@ const Feature = () => {
         >
             <div className="max-w-7xl mx-auto px-4">
                 <div className="text-center mb-16">
-                    <Badge className="mb-4 bg-purple-100 text-purple-700">Features</Badge>
+                    <Badge className="mb-4 bg-purple-100 text-purple-700 text-lg">Features</Badge>
                     <h2 className="text-4xl font-bold text-gray-900 mb-4">Everything You Need to Grow</h2>
                     <p className="text-xl text-gray-600 max-w-2xl mx-auto">
                         Comprehensive Tools and Features to help SMEs access Funding Quickly and Efficiently

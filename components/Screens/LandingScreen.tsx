@@ -69,7 +69,7 @@ const LandingPage = () => {
             >
                 <div className="max-w-7xl mx-auto px-4">
                     <div className="text-center mb-16">
-                        <Badge className="mb-4 bg-blue-100 text-blue-700">How It Works</Badge>
+                        <Badge className="mb-4 bg-blue-100 text-blue-700 text-lg">How It Works</Badge>
                         <h2 className="text-4xl font-bold text-gray-900 mb-4">Get Funded in 4 Steps</h2>
                         <p className="text-xl text-gray-600">From Signup to Disbursement in 48 hours</p>
                     </div>
@@ -110,7 +110,7 @@ const LandingPage = () => {
             >
                 <div className="max-w-7xl mx-auto px-4">
                     <div className="text-center mb-16">
-                        <Badge className="mb-4 bg-indigo-100 text-indigo-700">Who We Serve</Badge>
+                        <Badge className="mb-4 bg-indigo-100 text-indigo-700 text-lg">Who We Serve</Badge>
                         <h2 className="text-4xl font-bold text-gray-900 mb-4">Built for Indian SMEs</h2>
                         <p className="text-xl text-gray-600">Tailored for Multiple Industries and Business Stages</p>
                     </div>

@@ -100,7 +100,7 @@ const HeroSection = () => {
                             transition={{ duration: 0.6, delay: 0.4 }}
                             className="text-xl text-gray-600 mb-8"
                         >
-                            Get the Best Loan Offers in Minutes. Upload your documents,
+                            Get the best loan offers in minutes. Upload your documents,
                             get instant credit scoring, and access funding from 50+ lenders within 48 hours.
                         </motion.p>
                         <motion.div
@@ -152,7 +152,7 @@ const HeroSection = () => {
                         >
                             <div className="flex items-center mb-6 gap-1">
                                 <h3 className="text-xl md:text-xl font-bold">Speak to our Advisor </h3>
-                                <Badge className="bg-green-100 text-green-700 text-sm">Response within 5 mins</Badge>
+                                <Badge className="bg-green-100 text-green-700 text-sm">Get Response in 5 mins</Badge>
                             </div>
                             <div className="space-y-4">
                                 <div>
