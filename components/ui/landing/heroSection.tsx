@@ -179,9 +179,9 @@ const HeroSection = () => {
                                         Contact on WhatsApp
                                     </Button>
                                 </div>
-                                <p className="text-sm text-gray-500 text-center mt-4">
+                                {/* <p className="text-sm text-gray-500 text-center mt-4">
                                     We'll get back to you within 5 mins
-                                </p>
+                                </p> */}
                             </div>
                         </motion.div>
                     </motion.div>
