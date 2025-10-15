@@ -24,18 +24,18 @@ const HeroSection = () => {
     const { toast } = useToast();
     const router = useRouter();
     const waPhone = useMemo(() => {
-        const configured = process.env.NEXT_PUBLIC_WHATSAPP_PHONE || "91871421515"
+        const configured = process.env.NEXT_PUBLIC_WHATSAPP_PHONE || "+91 98714 21515"
         const digits = configured.replace(/[^0-9]/g, "")
         if (digits.length === 10) return `91${digits}`
         return digits
     }, [])
     const waLink = useMemo(() => {
-        const text = encodeURIComponent(`Hi, I want to apply for a loan. Name: ${name || ""}, Email: ${email || ""}, Mobile: ${mobileNumber || ""}, Amount: ${loanAmount || ""}`)
-        return `https://api.whatsapp.com/send?phone=${waPhone}&text=${text}`
-    }, [name, email, mobileNumber, loanAmount, waPhone])
+        return `https://api.whatsapp.com/send?phone=${waPhone}`
+    }, [waPhone])
     const handleWhatsApp = () => {
-        if (!waPhone || waPhone.length < 8 || waPhone.length > 15) {
-            toast({ title: "Invalid WhatsApp number" })
+        const isValid = /^\d{11,15}$/.test(waPhone)
+        if (!isValid) {
+            toast({ title: "Invalid WhatsApp number format. Use country code, e.g. 919876543210" })
             return
         }
         window.open(waLink, "_blank")
