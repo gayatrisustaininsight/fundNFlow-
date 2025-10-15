@@ -52,7 +52,7 @@ const HeroSection = () => {
                 name,
                 loanAmount: Number(loanAmount),
                 mobileNumber,
-            })
+            }, undefined, { withCredentials: false, baseURL: process.env.NEXT_PUBLIC_NOTIFICATIONS_BASE_URL || "http://localhost:3000/api/notifications" })
             toast({ title: "Submitted" })
             setName("")
             setEmail("")
@@ -61,7 +61,7 @@ const HeroSection = () => {
         } catch (e) {
             toast({ title: "Submission failed" })
         } finally {
-            setSubmitting(false)
+            setSubmitting(false);
         }
     }
     return (
