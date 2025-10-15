@@ -28,7 +28,7 @@ const Navigation = () => {
                             <Zap className="w-6 h-6 text-white" />
                         </div>
                         <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                            FundNFlow
+                            FundnFlow
                         </span>
                     </motion.div>
 

@@ -78,8 +78,8 @@ const HeroSection = () => {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6, delay: 0.2 }}
                         >
-                            <Badge className="mb-4 bg-blue-100 text-blue-700 border-blue-200">
-                                <Sparkles className="w-3 h-3 mr-1" />
+                            <Badge className="mb-4 bg-blue-100 text-blue-700 border-blue-200 text-lg">
+                                <Sparkles className="w-6 h-6 mr-1" />
                                 AI-Powered Credit Assessment
                             </Badge>
                         </motion.div>
@@ -101,7 +101,7 @@ const HeroSection = () => {
                             className="text-xl text-gray-600 mb-8"
                         >
                             Get matched with the best loan offers in minutes. Upload your documents,
-                            get instant credit scoring, and access funding from 50+ lenders.
+                            get instant credit scoring, and access funding from 50+ lenders within 48 hours.
                         </motion.p>
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
@@ -150,9 +150,9 @@ const HeroSection = () => {
                             transition={{ duration: 0.3 }}
                             className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8"
                         >
-                            <div className="flex items-center justify-between mb-6">
-                                <h3 className="text-xl md:text-2xl font-bold">Contact to our Advisor </h3>
-                                <Badge className="bg-green-100 text-green-700">Quick Connect response within 5 mins</Badge>
+                            <div className="flex items-center mb-6 gap-4">
+                                <h3 className="text-xl md:text-2xl font-bold">Speak to our Advisor </h3>
+                                <Badge className="bg-green-100 text-green-700 text-sm">Quick Connect response within 5 mins</Badge>
                             </div>
                             <div className="space-y-4">
                                 <div>
