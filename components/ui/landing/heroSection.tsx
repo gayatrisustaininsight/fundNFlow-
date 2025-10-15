@@ -100,7 +100,7 @@ const HeroSection = () => {
                             transition={{ duration: 0.6, delay: 0.4 }}
                             className="text-xl text-gray-600 mb-8"
                         >
-                            Get the best loan offers in minutes. Upload your documents,
+                            Get the Best Loan Offers in Minutes. Upload your documents,
                             get instant credit scoring, and access funding from 50+ lenders within 48 hours.
                         </motion.p>
                         <motion.div

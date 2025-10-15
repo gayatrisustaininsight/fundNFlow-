@@ -71,7 +71,7 @@ const LandingPage = () => {
                     <div className="text-center mb-16">
                         <Badge className="mb-4 bg-blue-100 text-blue-700">How It Works</Badge>
                         <h2 className="text-4xl font-bold text-gray-900 mb-4">Get Funded in 4 Steps</h2>
-                        <p className="text-xl text-gray-600">From signup to disbursement in 48 hours</p>
+                        <p className="text-xl text-gray-600">From Signup to Disbursement in 48 hours</p>
                     </div>
 
                     <div className="grid md:grid-cols-4 gap-8">
@@ -112,7 +112,7 @@ const LandingPage = () => {
                     <div className="text-center mb-16">
                         <Badge className="mb-4 bg-indigo-100 text-indigo-700">Who We Serve</Badge>
                         <h2 className="text-4xl font-bold text-gray-900 mb-4">Built for Indian SMEs</h2>
-                        <p className="text-xl text-gray-600">Tailored for multiple industries and business stages</p>
+                        <p className="text-xl text-gray-600">Tailored for Multiple Industries and Business Stages</p>
                     </div>
 
                     <div className="grid md:grid-cols-4 gap-8">
@@ -152,7 +152,7 @@ const LandingPage = () => {
             >
                 <div className="max-w-4xl mx-auto text-center px-4">
                     <h2 className="text-4xl font-bold mb-4 text-white">Ready to Grow Your Business?</h2>
-                    <p className="text-xl mb-8 text-blue-100">Join thousands of SMEs getting funded through FundanFlow</p>
+                    <p className="text-xl mb-8 text-blue-100">Join thousands of SMEs getting funded through FundnFlow</p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
 
                         <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8" onClick={() => setCurrentPage('onboarding')}>

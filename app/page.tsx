@@ -22,7 +22,7 @@ import Feature from '@/components/ui/landing/feature'
 import LandingPage from '@/components/Screens/LandingScreen'
 
 
-const FundanFlowApp = () => {
+const FundnFlowApp = () => {
   const [currentPage, setCurrentPage] = useState('landing')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [formData, setFormData] = useState({
@@ -234,4 +234,4 @@ const FundanFlowApp = () => {
   )
 }
 
-export default FundanFlowApp
+export default FundnFlowApp

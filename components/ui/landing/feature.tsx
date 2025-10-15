@@ -24,7 +24,7 @@ const Feature = () => {
                     <Badge className="mb-4 bg-purple-100 text-purple-700">Features</Badge>
                     <h2 className="text-4xl font-bold text-gray-900 mb-4">Everything You Need to Grow</h2>
                     <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                        Comprehensive tools and features to help SMEs access funding quickly and efficiently
+                        Comprehensive Tools and Features to help SMEs access Funding Quickly and Efficiently
                     </p>
                 </div>
 

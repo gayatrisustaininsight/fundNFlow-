@@ -88,7 +88,7 @@ const ConsolidatedOnboarding = () => {
                     <motion.div animate={{ rotate: [0, 5, -5, 0] }} transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }} className="inline-block mb-4">
                         <Sparkles className="w-12 h-12 text-blue-600 mx-auto" />
                     </motion.div>
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome to FundanFlow</h2>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome to FundnFlow</h2>
                     <p className="text-gray-600">Get started in just 2 simple steps!</p>
                 </motion.div>
 

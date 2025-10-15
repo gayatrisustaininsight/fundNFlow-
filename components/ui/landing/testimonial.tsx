@@ -16,13 +16,13 @@ const Testimonial = () => {
         >
             <div className="max-w-7xl mx-auto px-4">
                 <div className="text-center mb-16">
-                    <Badge className="mb-4 bg-green-100 text-green-700">Testimonials</Badge>
+                    <Badge className="mb-4 bg-green-100 text-green-700 text-lg">Testimonials</Badge>
                     <h2 className="text-4xl font-bold text-gray-900 mb-4">Trusted by Thousands of SMEs</h2>
                 </div>
 
                 <div className="grid md:grid-cols-3 gap-8">
                     {[
-                        { name: 'Rajesh Kumar', company: 'Tech Solutions Pvt Ltd', text: 'FundanFlow helped us get ₹25L working capital in just 2 days. The process was incredibly smooth!', rating: 5 },
+                        { name: 'Rajesh Kumar', company: 'Tech Solutions Pvt Ltd', text: 'FundnFlow helped us get ₹25L working capital in just 2 days. The process was incredibly smooth!', rating: 5 },
                         { name: 'Priya Sharma', company: 'Fashion Boutique', text: 'Best platform for SME loans. The credit score feature helped me understand my eligibility clearly.', rating: 5 },
                         { name: 'Amit Patel', company: 'Manufacturing Co', text: 'Transparent process, competitive rates, and excellent support. Highly recommended!', rating: 5 }
                     ].map((review, idx) => (
