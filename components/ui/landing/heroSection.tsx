@@ -152,7 +152,7 @@ const HeroSection = () => {
                         >
                             <div className="flex items-center mb-6 gap-1">
                                 <h3 className="text-xl md:text-xl font-bold">Speak to our Advisor </h3>
-                                <Badge className="bg-green-100 text-green-700 text-sm">Quick Connect response within 5 mins</Badge>
+                                <Badge className="bg-green-100 text-green-700 text-sm">Response within 5 mins</Badge>
                             </div>
                             <div className="space-y-4">
                                 <div>
