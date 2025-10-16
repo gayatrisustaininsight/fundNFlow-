@@ -44,6 +44,13 @@ interface AuthState {
   // OTP actions
   sendOTP: (mobile: string) => Promise<void>
   verifyOTP: (mobile: string, otp: string) => Promise<boolean>
+  register: (payload: {
+    businessName: string
+    email: string
+    mobile: string
+    pan: string
+    gstin?: string
+  }) => Promise<void>
   
   // Verification actions
   verifyPAN: (pan: string) => Promise<boolean>
@@ -133,7 +140,8 @@ export const useAuthStore = create<AuthState>()(
       sendOTP: async (mobile) => {
         set({ isSendingOTP: true })
         try {
-          const { data: { expiry } } = await api.post('/api/auth/send-otp', { mobile })
+          const base = (process.env.NEXT_PUBLIC_BACKEND_URL || '') + '/api/auth'
+          const { data: { expiry } } = await api.post('/send-otp', { mobile }, { baseURL: base, withCredentials: false })
           set({ otpSent: true, otpExpiry: expiry })
         } catch (error) {
           console.error('Send OTP error:', error)
@@ -146,7 +154,8 @@ export const useAuthStore = create<AuthState>()(
       verifyOTP: async (mobile, otp) => {
         set({ isVerifyingOTP: true })
         try {
-          await api.post('/api/auth/verify-otp', { mobile, otp })
+          const base = (process.env.NEXT_PUBLIC_BACKEND_URL || '') + '/api/auth'
+          await api.post('/verify-otp', { mobile, otp }, { baseURL: base, withCredentials: false })
           set({ otpVerified: true })
           return true
         } catch (error) {
@@ -156,11 +165,25 @@ export const useAuthStore = create<AuthState>()(
           set({ isVerifyingOTP: false })
         }
       },
+
+      register: async (payload) => {
+        set({ isLoading: true })
+        try {
+          const base = (process.env.NEXT_PUBLIC_BACKEND_URL || '') + '/api/auth'
+          const { data: { user, token } } = await api.post('/register', payload, { baseURL: base, withCredentials: false })
+          set({ user, token, isAuthenticated: true })
+        } catch (error) {
+          console.error('Register error:', error)
+          throw error
+        } finally {
+          set({ isLoading: false })
+        }
+      },
       
       verifyPAN: async (pan) => {
         set({ isVerifyingPAN: true })
         try {
-          const { data: { isValid, details } } = await api.post('/api/auth/verify-pan', { pan })
+          const { data: { isValid, details } } = await api.post('/verify-status/pan', { pan }, { baseURL: process.env.NEXT_PUBLIC_BACKEND_URL + '/api/verification', withCredentials: false })
           if (isValid) {
             set((state) => ({ 
               panDetails: { ...state.panDetails, pan, verified: true, details }
@@ -178,7 +201,8 @@ export const useAuthStore = create<AuthState>()(
       verifyGSTIN: async (gstin) => {
         set({ isVerifyingGSTIN: true })
         try {
-          const { data: { isValid, details } } = await api.post('/api/auth/verify-gstin', { gstin })
+          const base = process.env.NEXT_PUBLIC_BACKEND_URL + '/api/verification' || 'http://localhost:5000/api/verification'
+          const { data: { isValid, details } } = await api.post('/verify-status/gst', { gstin }, { baseURL: base, withCredentials: false })
           if (isValid) {
             set((state) => ({ 
               gstinDetails: { ...state.gstinDetails, gstin, verified: true, details }

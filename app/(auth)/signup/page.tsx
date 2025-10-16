@@ -21,21 +21,19 @@ const ConsolidatedOnboarding = () => {
     const [step, setStep] = useState(1)
     const [formData, setFormData] = useState<FormState>({ businessName: '', pan: '', gstin: '', mobile: '', email: '', otp: '' })
     const [otpSent, setOtpSent] = useState(false)
-    const [isLoading, setIsLoading] = useState(false)
+
     const [panVerified, setPanVerified] = useState<null | boolean>(null)
     const [gstVerified, setGstVerified] = useState<null | boolean>(null)
-    const { verifyPAN, isVerifyingPAN } = useAuthStore()
+    const { verifyPAN, isVerifyingPAN, verifyGSTIN, isVerifyingGSTIN, sendOTP, verifyOTP, register, isSendingOTP, isVerifyingOTP, isLoading } = useAuthStore()
 
     const updateField = (field: keyof FormState, value: string) => {
         setFormData(prev => ({ ...prev, [field]: value }))
     }
 
     const handleSendOTP = async () => {
-        setIsLoading(true)
-        setTimeout(() => {
-            setIsLoading(false)
-            setOtpSent(true)
-        }, 1200)
+        if (!formData.mobile) return
+        await sendOTP(formData.mobile)
+        setOtpSent(true)
     }
 
     const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]$/
@@ -53,9 +51,16 @@ const ConsolidatedOnboarding = () => {
         }
     }
 
-    const handleValidateGST = () => {
-        const isGSTValid = !formData.gstin || gstRegex.test(formData.gstin)
-        setGstVerified(isGSTValid)
+    const handleValidateGST = async () => {
+        const isFormatValid = gstRegex.test(formData.gstin)
+        setGstVerified(isFormatValid)
+        if (!isFormatValid) return
+        try {
+            const isServerValid = await verifyGSTIN(formData.gstin)
+            setGstVerified(isServerValid)
+        } catch {
+            setGstVerified(false)
+        }
     }
 
     const handleContinue = async () => {
@@ -75,8 +80,17 @@ const ConsolidatedOnboarding = () => {
         setStep(2)
     }
 
-    const handleComplete = () => {
+    const handleComplete = async () => {
         if (!formData.otp || formData.otp.length !== 6) return
+        const ok = await verifyOTP(formData.mobile, formData.otp)
+        if (!ok) return
+        await register({
+            businessName: formData.businessName,
+            email: formData.email,
+            mobile: formData.mobile,
+            pan: formData.pan,
+            gstin: formData.gstin || undefined,
+        })
     }
 
     const progress = (step / 2) * 100
@@ -138,8 +152,8 @@ const ConsolidatedOnboarding = () => {
                                             <Label className="flex items-center gap-2 mb-2 text-sm font-semibold"><FileText className="w-4 h-4 text-blue-600" />GSTIN <span className="text-gray-400">(Optional)</span></Label>
                                             <div className="flex gap-2">
                                                 <Input placeholder="22ABCDE1234F1Z5" className="uppercase" maxLength={15} value={formData.gstin} onChange={(e) => updateField('gstin', e.target.value.toUpperCase())} />
-                                                <Button onClick={handleValidateGST} size="sm">
-                                                    Validate
+                                                <Button onClick={handleValidateGST} variant="outline" size="sm" disabled={!formData.gstin || isVerifyingGSTIN}>
+                                                    {isVerifyingGSTIN ? 'Verifying...' : 'Verify'}
                                                 </Button>
                                             </div>
                                             <p className="text-xs text-gray-500 mt-1">15-digit GSTIN</p>
@@ -160,6 +174,7 @@ const ConsolidatedOnboarding = () => {
                                             <Label className="flex items-center gap-2 mb-2 text-sm font-semibold"><Mail className="w-4 h-4 text-blue-600" />Email Address <span className="text-red-500">*</span></Label>
                                             <Input type="email" placeholder="owner@company.com" value={formData.email} onChange={(e) => updateField('email', e.target.value)} />
                                         </div>
+
                                     </div>
 
                                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -203,8 +218,8 @@ const ConsolidatedOnboarding = () => {
                                     {!otpSent ? (
                                         <div className="text-center py-4">
                                             <p className="text-gray-600 mb-4">Click below to receive a verification code</p>
-                                            <Button onClick={handleSendOTP} disabled={isLoading} size="lg" className="w-full max-w-xs">
-                                                {isLoading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />Sending OTP...</>) : (<><Phone className="w-4 h-4 mr-2" />Send Verification Code</>)}
+                                            <Button onClick={handleSendOTP} disabled={isSendingOTP} size="lg" className="w-full max-w-xs">
+                                                {isSendingOTP ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />Sending OTP...</>) : (<><Phone className="w-4 h-4 mr-2" />Send Verification Code</>)}
                                             </Button>
                                         </div>
                                     ) : (
@@ -222,8 +237,8 @@ const ConsolidatedOnboarding = () => {
                                             <ArrowLeft className="w-4 h-4 mr-2" />
                                             Back
                                         </Button>
-                                        <Button onClick={handleComplete} className="flex-1" disabled={!otpSent || !formData.otp || formData.otp.length !== 6}>
-                                            Complete Setup
+                                        <Button onClick={handleComplete} className="flex-1" disabled={!otpSent || !formData.otp || formData.otp.length !== 6 || isVerifyingOTP || isLoading}>
+                                            {isVerifyingOTP || isLoading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />Verifying...</>) : 'Complete Setup'}
                                             <CheckCircle className="w-4 h-4 ml-2" />
                                         </Button>
                                     </div>
