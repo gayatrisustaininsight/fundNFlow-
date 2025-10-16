@@ -1,6 +1,6 @@
 pipeline {
     agent any
-    
+
     environment {
         APP_NAME = 'fundnflow'
         DEPLOY_USER = 'azureuser'
@@ -9,7 +9,7 @@ pipeline {
         EMAIL_RECIPIENT = 'pardeep.kumar@sustaininsight.com'
         APP_URL = 'https://dev.fundnflow.com'
     }
-    
+
     stages {
         stage('Checkout') {
             steps {
@@ -17,21 +17,21 @@ pipeline {
                 checkout scm
             }
         }
-        
+
         stage('Install Dependencies') {
             steps {
                 echo '📦 Installing dependencies...'
                 sh 'npm ci || npm install'
             }
         }
-        
+
         stage('Build') {
             steps {
                 echo '🏗️ Building application...'
                 sh 'npm run build'
             }
         }
-        
+
         stage('Deploy to Azure VM') {
             steps {
                 echo '🚀 Deploying to Azure VM...'
@@ -39,21 +39,21 @@ pipeline {
                     sh """
                         echo "Stopping application..."
                         ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_HOST} 'pm2 stop ${APP_NAME} || true'
-                        
+
                         echo "Syncing files..."
                         rsync -avz --delete \
                             --exclude 'node_modules' \
                             --exclude '.git' \
                             --exclude '.env.local' \
                             ./ ${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/
-                        
+
                         echo "Installing and building on server..."
                         ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_HOST} << 'ENDSSH'
 set -e
 cd ${DEPLOY_PATH}
 
 echo "Installing dependencies..."
-npm install --production
+npm install
 
 echo "Building application..."
 npm run build
@@ -70,7 +70,7 @@ ENDSSH
                 }
             }
         }
-        
+
         stage('Health Check') {
             steps {
                 echo '🏥 Running health check...'
@@ -78,14 +78,14 @@ ENDSSH
                     sh """
                         echo "Waiting for application to start..."
                         sleep 15
-                        
+
                         echo "Testing HTTP endpoint..."
                         if curl -f -s --connect-timeout 10 http://${DEPLOY_HOST}:3000 > /dev/null; then
                             echo "✅ Application is responding"
                         else
                             echo "⚠️ Application might not be fully ready yet"
                         fi
-                        
+
                         echo "Checking HTTPS endpoint..."
                         if curl -f -s --connect-timeout 10 ${APP_URL} > /dev/null; then
                             echo "✅ HTTPS endpoint is accessible"
@@ -97,7 +97,7 @@ ENDSSH
             }
         }
     }
-    
+
     post {
         success {
             echo '✅ Deployment Successful!'
@@ -120,7 +120,7 @@ The application is now live and ready for testing.
                 mimeType: 'text/plain'
             )
         }
-        
+
         failure {
             echo '❌ Deployment Failed!'
             emailext (
@@ -148,7 +148,7 @@ pm2 status
                 attachLog: true
             )
         }
-        
+
         always {
             echo '🧹 Cleaning up workspace...'
             cleanWs()
