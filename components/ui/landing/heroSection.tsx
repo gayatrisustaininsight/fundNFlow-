@@ -52,7 +52,7 @@ const HeroSection = () => {
                 name,
                 loanAmount: Number(loanAmount),
                 mobileNumber,
-            }, undefined, { withCredentials: false, baseURL: process.env.NEXT_PUBLIC_NOTIFICATIONS_BASE_URL || "http://localhost:3000/api/notifications" })
+            }, undefined, { withCredentials: false, baseURL: process.env.NEXT_PUBLIC_NOTIFICATIONS_BASE_URL || "https://greenaiuat.com/api/notifications" })
             toast({ title: "Submitted" })
             setName("")
             setEmail("")
