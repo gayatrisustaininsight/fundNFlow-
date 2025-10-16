@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Building2, FileText, Phone, Mail, ArrowRight, Shield, CheckCircle, Sparkles, ArrowLeft, Loader2 } from 'lucide-react'
 import { useState } from 'react'
 import { useAuthStore } from '@/store/authStore'
+import { useToast } from '@/hooks/use-toast'
 
 type FormState = {
     businessName: string
@@ -25,6 +26,7 @@ const ConsolidatedOnboarding = () => {
     const [panVerified, setPanVerified] = useState<null | boolean>(null)
     const [gstVerified, setGstVerified] = useState<null | boolean>(null)
     const { verifyPAN, isVerifyingPAN, verifyGSTIN, isVerifyingGSTIN, sendOTP, verifyOTP, register, isSendingOTP, isVerifyingOTP, isLoading } = useAuthStore()
+    const { toast } = useToast()
 
     const updateField = (field: keyof FormState, value: string) => {
         setFormData(prev => ({ ...prev, [field]: value }))
@@ -32,8 +34,14 @@ const ConsolidatedOnboarding = () => {
 
     const handleSendOTP = async () => {
         if (!formData.mobile) return
-        await sendOTP(formData.mobile)
-        setOtpSent(true)
+        try {
+            await sendOTP(formData.mobile)
+            setOtpSent(true)
+            toast({ title: 'OTP sent successfully' })
+        } catch (e: any) {
+            const msg = e?.response?.data?.message || 'Failed to send OTP'
+            toast({ title: msg })
+        }
     }
 
     const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]$/
@@ -83,7 +91,11 @@ const ConsolidatedOnboarding = () => {
     const handleComplete = async () => {
         if (!formData.otp || formData.otp.length !== 6) return
         const ok = await verifyOTP(formData.mobile, formData.otp)
-        if (!ok) return
+        if (!ok) {
+            toast({ title: 'Invalid or expired OTP' })
+            return
+        }
+        toast({ title: 'OTP verified' })
         await register({
             businessName: formData.businessName,
             email: formData.email,
@@ -91,6 +103,7 @@ const ConsolidatedOnboarding = () => {
             pan: formData.pan,
             gstin: formData.gstin || undefined,
         })
+        toast({ title: 'Registration completed' })
     }
 
     const progress = (step / 2) * 100

@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { BusinessDetails, ContactDetails, PANValidation, GSTINValidation, LoginData } from '@/lib/schemas/auth'
 import api from '@/lib/api'
+import { toast } from '@/hooks/use-toast'
 
 interface AuthState {
   // User session
@@ -108,8 +109,9 @@ export const useAuthStore = create<AuthState>()(
         try {
           const { data: { user, token } } = await api.post('/api/auth/login', data)
           set({ user, token, isAuthenticated: true })
-        } catch (error) {
-          console.error('Login error:', error)
+        } catch (error: any) {
+          const msg = error?.response?.data?.message || 'Login failed'
+          toast({ title: msg, variant: 'destructive' })
           throw error
         } finally {
           set({ isLoading: false })
@@ -143,8 +145,9 @@ export const useAuthStore = create<AuthState>()(
           const base = (process.env.NEXT_PUBLIC_BACKEND_URL || '') + '/api/auth'
           const { data: { expiry } } = await api.post('/send-otp', { mobile }, { baseURL: base, withCredentials: false })
           set({ otpSent: true, otpExpiry: expiry })
-        } catch (error) {
-          console.error('Send OTP error:', error)
+        } catch (error: any) {
+          const msg = error?.response?.data?.message || 'Failed to send OTP'
+          toast({ title: msg, variant: 'destructive' })
           throw error
         } finally {
           set({ isSendingOTP: false })
@@ -158,8 +161,9 @@ export const useAuthStore = create<AuthState>()(
           await api.post('/verify-otp', { mobile, otp }, { baseURL: base, withCredentials: false })
           set({ otpVerified: true })
           return true
-        } catch (error) {
-          console.error('Verify OTP error:', error)
+        } catch (error: any) {
+          const msg = error?.response?.data?.message || 'Invalid or expired OTP'
+          toast({ title: msg, variant: 'destructive' })
           return false
         } finally {
           set({ isVerifyingOTP: false })
@@ -172,8 +176,9 @@ export const useAuthStore = create<AuthState>()(
           const base = (process.env.NEXT_PUBLIC_BACKEND_URL || '') + '/api/auth'
           const { data: { user, token } } = await api.post('/register', payload, { baseURL: base, withCredentials: false })
           set({ user, token, isAuthenticated: true })
-        } catch (error) {
-          console.error('Register error:', error)
+        } catch (error: any) {
+          const msg = error?.response?.data?.message || 'Registration failed'
+          toast({ title: msg, variant: 'destructive' })
           throw error
         } finally {
           set({ isLoading: false })
@@ -190,8 +195,9 @@ export const useAuthStore = create<AuthState>()(
             }))
           }
           return isValid
-        } catch (error) {
-          console.error('PAN verification error:', error)
+        } catch (error: any) {
+          const msg = error?.response?.data?.message || 'PAN verification failed'
+          toast({ title: msg, variant: 'destructive' })
           return false
         } finally {
           set({ isVerifyingPAN: false })
@@ -209,8 +215,9 @@ export const useAuthStore = create<AuthState>()(
             }))
           }
           return isValid
-        } catch (error) {
-          console.error('GSTIN verification error:', error)
+        } catch (error: any) {
+          const msg = error?.response?.data?.message || 'GSTIN verification failed'
+          toast({ title: msg, variant: 'destructive' })
           return false
         } finally {
           set({ isVerifyingGSTIN: false })
