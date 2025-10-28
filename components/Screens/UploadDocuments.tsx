@@ -1,16 +1,23 @@
 'use client'
 
-import { useState } from 'react'
-import { Upload, CheckCircle, FileText, X, File, TrendingUp, Building2, Shield, Info } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Upload, CheckCircle, FileText, X, File, TrendingUp, Building2, Shield, Info, AlertCircle, Loader2 } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
+import { useAuthStore } from '@/store/authStore'
+import { useDocumentUpload, useDocumentList, DocumentUploadResponse, DocumentListItem } from '@/lib/api/documents'
+import { useToast } from '@/hooks/use-toast'
 
-// Mock types
+// Updated Document interface to match API response
 interface Document {
     id: string
     name: string
     type: 'gst_return' | 'bank_statement' | 'financial'
     status: 'uploading' | 'uploaded' | 'processing' | 'processed' | 'failed'
     uploadProgress?: number
+    file?: File
+    url?: string
+    error?: string
+    uploadedAt?: string
 }
 
 type TabType = 'bank_statement' | 'gst_return' | 'financial'
@@ -23,41 +30,210 @@ const tabs = [
 
 export default function UploadScreen() {
     const { setCurrentStep } = useAppStore()
+    const { user } = useAuthStore()
+    const { uploadDocument } = useDocumentUpload()
+    const { getDocumentList } = useDocumentList()
+    const { toast } = useToast()
     const [documents, setDocuments] = useState<Document[]>([])
+    const [documentList, setDocumentList] = useState<DocumentListItem[]>([])
     const [activeTab, setActiveTab] = useState<TabType>('bank_statement')
     const [dragActive, setDragActive] = useState(false)
+    const [loadingDocuments, setLoadingDocuments] = useState(false)
 
-    const handleFileUpload = (files: FileList | null) => {
-        if (!files) return
-        Array.from(files).forEach((file) => {
+    // Fetch document list from API
+    const fetchDocumentList = async () => {
+        if (!user) return
+
+        setLoadingDocuments(true)
+        try {
+            console.log('📋 Fetching document list on page load')
+            const response = await getDocumentList({ page: 1, limit: 50 })
+
+            console.log('📋 Document list fetched:', response.data.documents)
+            setDocumentList(response.data.documents)
+
+            // Convert API documents to local document format for display
+            const localDocs: Document[] = response.data.documents.map((doc: DocumentListItem) => ({
+                id: doc.id,
+                name: doc.originalName,
+                type: 'bank_statement' as TabType, // Default type, you can categorize based on filename
+                status: 'uploaded' as const,
+                url: doc.url,
+                uploadedAt: doc.createdAt
+            }))
+
+            setDocuments(localDocs)
+
+        } catch (error: any) {
+            console.error('📋 Error fetching document list:', error)
+            toast({
+                title: 'Error Loading Documents',
+                description: error?.response?.data?.message || 'Failed to load documents',
+                variant: 'destructive'
+            })
+        } finally {
+            setLoadingDocuments(false)
+        }
+    }
+
+    // Load documents on page load and when user changes
+    useEffect(() => {
+        if (user) {
+            console.log('🔄 User authenticated, loading documents')
+            fetchDocumentList()
+        }
+    }, [user])
+
+    const validateFile = (file: File): string | null => {
+        // Check file size (10MB limit)
+        if (file.size > 10 * 1024 * 1024) {
+            return 'File size must be less than 10MB'
+        }
+
+        // Check file type
+        const allowedTypes = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx']
+        const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase()
+        if (!allowedTypes.includes(fileExtension)) {
+            return 'File type not supported. Accepted types: PDF, JPG, PNG, DOC, DOCX'
+        }
+
+        return null
+    }
+
+    const handleFileUpload = async (files: FileList | null) => {
+        console.log('🚀 handleFileUpload called with:', files)
+        console.log('👤 User:', user)
+        console.log('🔑 Token check:', typeof window !== 'undefined' ?
+            (() => {
+                try {
+                    const authStorage = localStorage.getItem('auth-storage')
+                    if (authStorage) {
+                        const authData = JSON.parse(authStorage)
+                        return authData?.state?.token ? 'Present' : 'Missing'
+                    }
+                    return 'No auth storage'
+                } catch {
+                    return 'Error parsing auth'
+                }
+            })() : 'Server side'
+        )
+
+        if (!files || !user) {
+            console.log('❌ No files or user, returning early')
+            return
+        }
+
+        const fileArray = Array.from(files)
+        console.log('Files to upload:', fileArray.length)
+
+        for (const file of fileArray) {
+            console.log('Processing file:', file.name, file.size)
+
+            const validationError = validateFile(file)
+
+            if (validationError) {
+                console.log('Validation error:', validationError)
+                toast({
+                    title: 'Upload Error',
+                    description: validationError,
+                    variant: 'destructive'
+                })
+                continue
+            }
+
             const document: Document = {
                 id: Math.random().toString(36).substr(2, 9),
                 name: file.name,
                 type: activeTab,
                 status: 'uploading',
                 uploadProgress: 0,
+                file: file
             }
+
             setDocuments(prev => [...prev, document])
-            let progress = 0
-            const interval = setInterval(() => {
-                progress += 10
-                if (progress >= 100) {
-                    clearInterval(interval)
-                    setDocuments(prev => prev.map(doc =>
-                        doc.id === document.id ? { ...doc, uploadProgress: 100, status: 'uploaded' } : doc
-                    ))
-                } else {
-                    setDocuments(prev => prev.map(doc =>
-                        doc.id === document.id ? { ...doc, uploadProgress: progress } : doc
-                    ))
-                }
-            }, 200)
-        })
+            console.log('Document added to state:', document)
+
+            try {
+                console.log('Starting upload for:', file.name)
+                console.log('Upload params:', {
+                    file: file.name,
+                    uploadedBy: user.id,
+                    filename: file.name
+                })
+
+                // Simulate upload progress
+                let progress = 0
+                const progressInterval = setInterval(() => {
+                    progress += 10
+                    if (progress < 90) {
+                        setDocuments(prev => prev.map(doc =>
+                            doc.id === document.id ? { ...doc, uploadProgress: progress } : doc
+                        ))
+                    }
+                }, 200)
+
+                const response = await uploadDocument({
+                    file,
+                    uploadedBy: user.id,
+                    filename: file.name
+                })
+
+                console.log('Upload response:', response)
+                clearInterval(progressInterval)
+
+                setDocuments(prev => prev.map(doc =>
+                    doc.id === document.id
+                        ? {
+                            ...doc,
+                            uploadProgress: 100,
+                            status: 'uploaded',
+                            url: response.data.url,
+                            uploadedAt: response.data.createdAt
+                        }
+                        : doc
+                ))
+
+                toast({
+                    title: 'Upload Successful',
+                    description: `${file.name} uploaded successfully`,
+                    variant: 'default'
+                })
+
+                // Refresh document list after successful upload
+                console.log('🔄 Upload successful, refreshing document list')
+                fetchDocumentList()
+
+            } catch (error: any) {
+                console.error('Upload error:', error)
+                console.error('Error details:', {
+                    message: error?.message,
+                    response: error?.response?.data,
+                    status: error?.response?.status
+                })
+
+                setDocuments(prev => prev.map(doc =>
+                    doc.id === document.id
+                        ? {
+                            ...doc,
+                            status: 'failed',
+                            error: error?.response?.data?.message || 'Upload failed'
+                        }
+                        : doc
+                ))
+
+                toast({
+                    title: 'Upload Failed',
+                    description: error?.response?.data?.message || 'Failed to upload file',
+                    variant: 'destructive'
+                })
+            }
+        }
     }
 
     const handleDrag = (e: React.DragEvent) => {
         e.preventDefault()
         e.stopPropagation()
+        console.log('🔄 Drag event:', e.type)
         setDragActive(e.type === 'dragenter' || e.type === 'dragover')
     }
 
@@ -65,12 +241,26 @@ export default function UploadScreen() {
         e.preventDefault()
         e.stopPropagation()
         setDragActive(false)
+        console.log('📦 Drop event:', e.dataTransfer.files)
         handleFileUpload(e.dataTransfer.files)
     }
 
     const currentTabDocs = documents.filter(d => d.type === activeTab)
     const totalDocs = documents.length
     const uploadedDocs = documents.filter(d => d.status === 'uploaded' || d.status === 'processed').length
+
+    // Check if user is authenticated
+    if (!user) {
+        return (
+            <div className="h-full w-full bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+                <div className="text-center">
+                    <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                    <h2 className="text-xl font-semibold text-gray-900 mb-2">Authentication Required</h2>
+                    <p className="text-gray-600">Please log in to upload documents</p>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className="h-full w-full bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
@@ -88,6 +278,18 @@ export default function UploadScreen() {
                                 <div className="text-2xl font-bold text-gray-900">{uploadedDocs}/{totalDocs}</div>
                                 <div className="text-xs text-gray-500">Uploaded</div>
                             </div>
+                            <button
+                                onClick={fetchDocumentList}
+                                disabled={loadingDocuments}
+                                className="px-4 py-2 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                            >
+                                {loadingDocuments ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <FileText className="w-4 h-4" />
+                                )}
+                                Refresh
+                            </button>
                             {totalDocs > 0 && (
                                 <button
                                     onClick={() => setCurrentStep('credit-passport')}
@@ -131,8 +333,8 @@ export default function UploadScreen() {
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-hidden">
-                    <div className="h-full grid grid-cols-2 divide-x divide-gray-200">
+                <div className="flex-1 max-h-[500px]">
+                    <div className="h-full  grid grid-cols-2 divide-x divide-gray-200">
 
                         {/* Upload Area */}
                         <div className="p-8 flex flex-col">
@@ -149,12 +351,16 @@ export default function UploadScreen() {
                             </div>
 
                             <div
-                                className={`flex-1 rounded-xl border-2 border-dashed transition-all flex flex-col items-center justify-center ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+                                className={`flex-1 rounded-xl border-2 border-dashed transition-all flex flex-col items-center justify-center cursor-pointer ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
                                     }`}
                                 onDragEnter={handleDrag}
                                 onDragLeave={handleDrag}
                                 onDragOver={handleDrag}
                                 onDrop={handleDrop}
+                            // onClick={() => {
+                            //     console.log('🖱️ Upload area clicked')
+                            //     document.getElementById('fileUpload')?.click()
+                            // }}
                             >
                                 <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
                                     <Upload className="w-8 h-8 text-gray-400" />
@@ -163,7 +369,10 @@ export default function UploadScreen() {
                                 <p className="text-sm text-gray-500 mb-6">or click to browse</p>
                                 <input
                                     type="file"
-                                    onChange={(e) => handleFileUpload(e.target.files)}
+                                    onChange={(e) => {
+                                        console.log('📁 File input changed:', e.target.files)
+                                        handleFileUpload(e.target.files)
+                                    }}
                                     className="hidden"
                                     id="fileUpload"
                                     accept=".pdf,.jpg,.jpeg,.png"
@@ -196,10 +405,11 @@ export default function UploadScreen() {
                                     <span>Fast process</span>
                                 </div>
                             </div>
+
                         </div>
 
                         {/* Files List */}
-                        <div className="p-8 flex flex-col bg-gray-50">
+                        <div className="p-8 flex flex-col bg-gray-50   min-h-[500px] max-h-[500px] overflow-y-auto">
                             <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-sm font-semibold text-gray-900">
                                     {currentTabDocs.length > 0 ? `${currentTabDocs.length} file${currentTabDocs.length !== 1 ? 's' : ''}` : 'No files yet'}
@@ -215,7 +425,13 @@ export default function UploadScreen() {
                             </div>
 
                             <div className="flex-1 overflow-y-auto space-y-2">
-                                {currentTabDocs.length === 0 ? (
+                                {loadingDocuments ? (
+                                    <div className="h-full flex flex-col items-center justify-center text-center">
+                                        <Loader2 className="w-8 h-8 animate-spin text-blue-600 mb-3" />
+                                        <p className="text-sm font-medium text-gray-900 mb-1">Loading documents...</p>
+                                        <p className="text-xs text-gray-500">Fetching from server</p>
+                                    </div>
+                                ) : currentTabDocs.length === 0 ? (
                                     <div className="h-full flex flex-col items-center justify-center text-center">
                                         <div className="w-14 h-14 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center mb-3">
                                             <FileText className="w-7 h-7 text-gray-300" />
@@ -236,11 +452,15 @@ export default function UploadScreen() {
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-sm font-medium text-gray-900 truncate">{doc.name}</p>
                                                     <p className="text-xs text-gray-500 mt-0.5">
-                                                        {doc.uploadProgress !== undefined && doc.uploadProgress < 100
+                                                        {doc.status === 'uploading' && doc.uploadProgress !== undefined
                                                             ? `Uploading ${doc.uploadProgress}%`
-                                                            : 'Upload complete'}
+                                                            : doc.status === 'uploaded'
+                                                                ? 'Upload complete'
+                                                                : doc.status === 'failed'
+                                                                    ? doc.error || 'Upload failed'
+                                                                    : 'Processing...'}
                                                     </p>
-                                                    {doc.uploadProgress !== undefined && doc.uploadProgress < 100 && (
+                                                    {doc.status === 'uploading' && doc.uploadProgress !== undefined && (
                                                         <div className="mt-2 h-1 bg-gray-200 rounded-full overflow-hidden">
                                                             <div
                                                                 className="h-full bg-blue-600 transition-all"
@@ -248,13 +468,29 @@ export default function UploadScreen() {
                                                             />
                                                         </div>
                                                     )}
+                                                    {doc.status === 'failed' && (
+                                                        <div className="mt-1 text-xs text-red-600">
+                                                            {doc.error || 'Upload failed'}
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    {(doc.status === 'uploaded' || doc.status === 'processed') && (
+                                                    {doc.status === 'uploading' && (
+                                                        <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />
+                                                    )}
+                                                    {doc.status === 'uploaded' && (
                                                         <CheckCircle className="w-5 h-5 text-green-600" />
                                                     )}
+                                                    {doc.status === 'failed' && (
+                                                        <AlertCircle className="w-5 h-5 text-red-500" />
+                                                    )}
                                                     <button
-                                                        onClick={() => setDocuments(prev => prev.filter(d => d.id !== doc.id))}
+                                                        onClick={() => {
+                                                            setDocuments(prev => prev.filter(d => d.id !== doc.id))
+                                                            // Refresh document list after delete
+                                                            console.log('🗑️ Document deleted, refreshing list')
+                                                            fetchDocumentList()
+                                                        }}
                                                         className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-gray-100 rounded transition-opacity"
                                                     >
                                                         <X className="w-4 h-4 text-gray-400" />

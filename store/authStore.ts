@@ -21,6 +21,7 @@ interface AuthState {
   otpSent: boolean
   otpVerified: boolean
   otpExpiry: number | null
+  verificationToken: string | null
   
   // Loading states
   isLoading: boolean
@@ -32,7 +33,7 @@ interface AuthState {
   // Actions
   setUser: (user: User | null) => void
   setToken: (token: string | null) => void
-  login: (data: LoginData) => Promise<void>
+  login: (data: LoginData) => Promise<{ user: User; token: string }>
   logout: () => void
   
   // Onboarding actions
@@ -45,13 +46,18 @@ interface AuthState {
   // OTP actions
   sendOTP: (mobile: string) => Promise<void>
   verifyOTP: (mobile: string, otp: string) => Promise<boolean>
+  sendLoginOTP: (mobile: string) => Promise<void>
+  verifyLoginOTP: (mobile: string, otp: string) => Promise<{ user: User; token: string } | false>
   register: (payload: {
     businessName: string
     email: string
     mobile: string
     pan: string
     gstin?: string
-  }) => Promise<void>
+  }) => Promise<{ user: User; token: string }>
+  checkUser: (payload: { mobile: string, email: string }) => Promise<{ exists: boolean }>
+  sendRegistrationOTP: (payload: { mobile: string, email: string }) => Promise<void>
+  verifyRegistrationOTP: (payload: { mobile: string, email: string, otp: string }) => Promise<boolean>
   
   // Verification actions
   verifyPAN: (pan: string) => Promise<boolean>
@@ -71,6 +77,8 @@ interface User {
   email: string
   pan: string
   gstin?: string
+  panVerified: boolean
+  gstVerified: boolean
   isVerified: boolean
   onboardingCompleted: boolean
   createdAt: string
@@ -89,6 +97,7 @@ const initialState = {
   otpSent: false,
   otpVerified: false,
   otpExpiry: null,
+  verificationToken: null,
   isLoading: false,
   isVerifyingPAN: false,
   isVerifyingGSTIN: false,
@@ -107,8 +116,12 @@ export const useAuthStore = create<AuthState>()(
       login: async (data) => {
         set({ isLoading: true })
         try {
-          const { data: { user, token } } = await api.post('/api/auth/login', data)
+          const base = (process.env.NEXT_PUBLIC_BACKEND_URL || '') + '/api/auth'
+          const { data: response } = await api.post('/login', data, { baseURL: base, withCredentials: false })
+          const { user, token } = response.data
           set({ user, token, isAuthenticated: true })
+          toast({ title: 'Login successful!', variant: 'default' })
+          return { user, token }
         } catch (error: any) {
           const msg = error?.response?.data?.message || 'Login failed'
           toast({ title: msg, variant: 'destructive' })
@@ -121,7 +134,7 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         set({ ...initialState })
         if (typeof window !== 'undefined') {
-          localStorage.removeItem('auth_token')
+          localStorage.removeItem('auth-storage')
         }
       },
       
@@ -153,14 +166,87 @@ export const useAuthStore = create<AuthState>()(
           set({ isSendingOTP: false })
         }
       },
+
+      checkUser: async ({ mobile, email }) => {
+        return { exists: false }
+      },
+
+      sendRegistrationOTP: async ({ mobile, email }) => {
+        set({ isSendingOTP: true })
+        try {
+          const base = (process.env.NEXT_PUBLIC_BACKEND_URL || '') + '/api/auth'
+          await api.post('/send-registration-otp', { mobile, email }, { baseURL: base, withCredentials: false })
+          set({ otpSent: true })
+        } catch (error: any) {
+          const msg = error?.response?.data?.message || 'Failed to send registration OTP'
+          toast({ title: msg, variant: 'destructive' })
+          throw error
+        } finally {
+          set({ isSendingOTP: false })
+        }
+      },
+
+      verifyRegistrationOTP: async ({ mobile, email, otp }) => {
+        set({ isVerifyingOTP: true })
+        try {
+          const base = (process.env.NEXT_PUBLIC_BACKEND_URL || '') + '/api/auth'
+          const { data } = await api.post('/verify-registration-otp', { mobile, email, otp }, { baseURL: base, withCredentials: false })
+          const verificationToken = data?.verificationToken || null
+          set({ otpVerified: true, verificationToken })
+          return true
+        } catch (error: any) {
+          const msg = error?.response?.data?.message || 'Invalid or expired OTP'
+          toast({ title: msg, variant: 'destructive' })
+          return false
+        } finally {
+          set({ isVerifyingOTP: false })
+        }
+      },
       
       verifyOTP: async (mobile, otp) => {
         set({ isVerifyingOTP: true })
         try {
           const base = (process.env.NEXT_PUBLIC_BACKEND_URL || '') + '/api/auth'
-          await api.post('/verify-otp', { mobile, otp }, { baseURL: base, withCredentials: false })
-          set({ otpVerified: true })
+          const { data } = await api.post('/verify-otp', { mobile, otp }, { baseURL: base, withCredentials: false })
+          const verificationToken = data?.data?.verificationToken || null
+          set({ otpVerified: true, verificationToken })
+          toast({ title: 'OTP verified successfully!', variant: 'default' })
           return true
+        } catch (error: any) {
+          const msg = error?.response?.data?.message || 'Invalid or expired OTP'
+          toast({ title: msg, variant: 'destructive' })
+          return false
+        } finally {
+          set({ isVerifyingOTP: false })
+        }
+      },
+
+      sendLoginOTP: async (mobile) => {
+        set({ isSendingOTP: true })
+        try {
+          const base = (process.env.NEXT_PUBLIC_BACKEND_URL || '') + '/api/auth/login'
+          await api.post('/send-otp', { mobile }, { baseURL: base, withCredentials: false })
+          set({ otpSent: true })
+          toast({ title: 'Login OTP sent successfully!', variant: 'default' })
+        } catch (error: any) {
+          const msg = error?.response?.data?.message || 'Failed to send login OTP'
+          toast({ title: msg, variant: 'destructive' })
+          throw error
+        } finally {
+          set({ isSendingOTP: false })
+        }
+      },
+
+      verifyLoginOTP: async (mobile, otp) => {
+        set({ isVerifyingOTP: true })
+        try {
+          const base = (process.env.NEXT_PUBLIC_BACKEND_URL || '') + '/api/auth/login'
+          const { data } = await api.post('/verify-otp', { mobile, otp }, { baseURL: base, withCredentials: false })
+          const { user, token } = data.data
+          set({ user, token, isAuthenticated: true, otpVerified: true })
+          
+          toast({ title: 'Login successful!', variant: 'default' })
+          return { user, token }
         } catch (error: any) {
           const msg = error?.response?.data?.message || 'Invalid or expired OTP'
           toast({ title: msg, variant: 'destructive' })
@@ -173,9 +259,18 @@ export const useAuthStore = create<AuthState>()(
       register: async (payload) => {
         set({ isLoading: true })
         try {
+          const state = get()
           const base = (process.env.NEXT_PUBLIC_BACKEND_URL || '') + '/api/auth'
-          const { data: { user, token } } = await api.post('/register', payload, { baseURL: base, withCredentials: false })
+          const registrationPayload = {
+            ...payload,
+            verificationToken: state.verificationToken
+          }
+          const { data } = await api.post('/register', registrationPayload, { baseURL: base, withCredentials: false })
+          const { user, token } = data.data
           set({ user, token, isAuthenticated: true })
+          
+          toast({ title: 'Registration completed successfully!', variant: 'default' })
+          return { user, token }
         } catch (error: any) {
           const msg = error?.response?.data?.message || 'Registration failed'
           toast({ title: msg, variant: 'destructive' })

@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Building2, FileText, Phone, Mail, ArrowRight, Shield, CheckCircle, Sparkles, ArrowLeft, Loader2 } from 'lucide-react'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
 import { useToast } from '@/hooks/use-toast'
 
@@ -20,19 +21,20 @@ type FormState = {
 
 const ConsolidatedOnboarding = () => {
     const [step, setStep] = useState(1)
+    const router = useRouter()
     const [formData, setFormData] = useState<FormState>({ businessName: '', pan: '', gstin: '', mobile: '', email: '', otp: '' })
     const [otpSent, setOtpSent] = useState(false)
 
     const [panVerified, setPanVerified] = useState<null | boolean>(null)
     const [gstVerified, setGstVerified] = useState<null | boolean>(null)
-    const { verifyPAN, isVerifyingPAN, verifyGSTIN, isVerifyingGSTIN, sendOTP, verifyOTP, register, isSendingOTP, isVerifyingOTP, isLoading } = useAuthStore()
+    const { verifyPAN, isVerifyingPAN, verifyGSTIN, isVerifyingGSTIN, register, isSendingOTP, isVerifyingOTP, isLoading, checkUser, sendOTP, verifyOTP, otpVerified, verificationToken } = useAuthStore()
     const { toast } = useToast()
 
     const updateField = (field: keyof FormState, value: string) => {
         setFormData(prev => ({ ...prev, [field]: value }))
     }
 
-    const handleSendOTP = async () => {
+    const handleSendRegistrationOTP = async () => {
         if (!formData.mobile) return
         try {
             await sendOTP(formData.mobile)
@@ -72,14 +74,15 @@ const ConsolidatedOnboarding = () => {
     }
 
     const handleContinue = async () => {
-        const panOk = panRegex.test(formData.pan)
-        const gstOk = !formData.gstin || gstRegex.test(formData.gstin)
         const mobileOk = formData.mobile && formData.mobile.length === 10
         const emailOk = !!formData.email
-        setPanVerified(panOk)
-        setGstVerified(gstOk)
-        if (!formData.businessName || !panOk || !gstOk || !mobileOk || !emailOk) return
-        await handleSendOTP()
+        if (!formData.businessName || !mobileOk || !emailOk) return
+        const existsResp = await checkUser({ mobile: formData.mobile, email: formData.email })
+        if (existsResp?.exists) {
+            router.push('/login')
+            return
+        }
+        await handleSendRegistrationOTP()
         setStep(2)
     }
 
@@ -89,24 +92,39 @@ const ConsolidatedOnboarding = () => {
     }
 
     const handleComplete = async () => {
-        if (!formData.otp || formData.otp.length !== 6) return
-        const ok = await verifyOTP(formData.mobile, formData.otp)
-        if (!ok) {
-            toast({ title: 'Invalid or expired OTP' })
-            return
+        if (!otpVerified) {
+            if (!formData.otp || formData.otp.length !== 6) return
+            const ok = await verifyOTP(formData.mobile, formData.otp)
+            if (!ok) {
+                return
+            }
         }
-        toast({ title: 'OTP verified' })
-        await register({
-            businessName: formData.businessName,
-            email: formData.email,
-            mobile: formData.mobile,
-            pan: formData.pan,
-            gstin: formData.gstin || undefined,
-        })
-        toast({ title: 'Registration completed' })
+        try {
+            const result = await register({
+                businessName: formData.businessName,
+                email: formData.email,
+                mobile: formData.mobile,
+                pan: '',
+                gstin: undefined,
+            })
+
+            // Redirect based on verification status
+            if (result?.user) {
+                if (!result.user.panVerified || !result.user.gstVerified) {
+                    // Redirect to verification/onboarding if PAN or GST not verified
+                    router.push('/onboarding')
+                } else {
+                    // Redirect to dashboard if all verifications are complete
+                    router.push('/dashboard')
+                }
+            }
+        } catch (error) {
+            // Error handling is done in the auth store
+            console.error('Registration failed:', error)
+        }
     }
 
-    const progress = (step / 2) * 100
+    const progress = (step / 3) * 100
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
@@ -121,7 +139,7 @@ const ConsolidatedOnboarding = () => {
 
                 <div className="mb-8">
                     <div className="flex items-center justify-between mb-3">
-                        <span className="text-sm font-semibold text-gray-700">Step {step} of 2</span>
+                        <span className="text-sm font-semibold text-gray-700">Step {step} of 3</span>
                         <span className="text-sm text-blue-600 font-medium">{Math.round(progress)}% Complete</span>
                     </div>
                     <div className="h-2.5 bg-gray-200 rounded-full overflow-hidden">
@@ -145,38 +163,7 @@ const ConsolidatedOnboarding = () => {
                                         <Input placeholder="e.g., Green Tech Solutions Pvt Ltd" value={formData.businessName} onChange={(e) => updateField('businessName', e.target.value)} />
                                     </div>
 
-                                    <div className="grid md:grid-cols-2 gap-4">
-                                        <div>
-                                            <Label className="flex items-center gap-2 mb-2 text-sm font-semibold"><FileText className="w-4 h-4 text-blue-600" />PAN Number <span className="text-red-500">*</span></Label>
-                                            <div className="flex gap-2">
-                                                <Input placeholder="ABCDE1234F" className="uppercase" maxLength={10} value={formData.pan} onChange={(e) => updateField('pan', e.target.value.toUpperCase())} />
-                                                <Button onClick={handleValidatePAN} variant="outline" size="sm" disabled={!formData.pan || isVerifyingPAN}>
-                                                    {isVerifyingPAN ? 'Verifying...' : 'Verify'}
-                                                </Button>
-                                            </div>
-                                            <p className="text-xs text-gray-500 mt-1">10-digit PAN number</p>
-                                            {panVerified !== null && (
-                                                <p className={`text-xs mt-1 ${panVerified ? 'text-green-600' : 'text-red-600'}`}>
-                                                    {panVerified ? 'PAN looks valid' : 'Invalid PAN format'}
-                                                </p>
-                                            )}
-                                        </div>
-                                        <div>
-                                            <Label className="flex items-center gap-2 mb-2 text-sm font-semibold"><FileText className="w-4 h-4 text-blue-600" />GSTIN <span className="text-gray-400">(Optional)</span></Label>
-                                            <div className="flex gap-2">
-                                                <Input placeholder="22ABCDE1234F1Z5" className="uppercase" maxLength={15} value={formData.gstin} onChange={(e) => updateField('gstin', e.target.value.toUpperCase())} />
-                                                <Button onClick={handleValidateGST} variant="outline" size="sm" disabled={!formData.gstin || isVerifyingGSTIN}>
-                                                    {isVerifyingGSTIN ? 'Verifying...' : 'Verify'}
-                                                </Button>
-                                            </div>
-                                            <p className="text-xs text-gray-500 mt-1">15-digit GSTIN</p>
-                                            {gstVerified !== null && (
-                                                <p className={`text-xs mt-1 ${gstVerified ? 'text-green-600' : 'text-red-600'}`}>
-                                                    {gstVerified ? 'GSTIN looks valid' : 'Invalid GSTIN format'}
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
+
 
                                     <div className="grid md:grid-cols-2 gap-4">
                                         <div>
@@ -223,15 +210,14 @@ const ConsolidatedOnboarding = () => {
                                 <div className="space-y-6">
                                     <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                                         <div className="flex justify-between text-sm"><span className="text-gray-600">Business Name:</span><span className="font-semibold">{formData.businessName}</span></div>
-                                        <div className="flex justify-between text-sm"><span className="text-gray-600">PAN:</span><span className="font-semibold">{formData.pan}</span></div>
-                                        {formData.gstin && <div className="flex justify-between text-sm"><span className="text-gray-600">GSTIN:</span><span className="font-semibold">{formData.gstin}</span></div>}
+                                        <div className="flex justify-between text-sm"><span className="text-gray-600">Mobile:</span><span className="font-semibold">{formData.mobile}</span></div>
                                         <div className="flex justify-between text-sm"><span className="text-gray-600">Email:</span><span className="font-semibold">{formData.email}</span></div>
                                     </div>
 
                                     {!otpSent ? (
                                         <div className="text-center py-4">
                                             <p className="text-gray-600 mb-4">Click below to receive a verification code</p>
-                                            <Button onClick={handleSendOTP} disabled={isSendingOTP} size="lg" className="w-full max-w-xs">
+                                            <Button onClick={handleSendRegistrationOTP} disabled={isSendingOTP} size="lg" className="w-full max-w-xs">
                                                 {isSendingOTP ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />Sending OTP...</>) : (<><Phone className="w-4 h-4 mr-2" />Send Verification Code</>)}
                                             </Button>
                                         </div>
@@ -240,7 +226,7 @@ const ConsolidatedOnboarding = () => {
                                             <Label className="flex items-center gap-2 mb-2 text-sm font-semibold"><CheckCircle className="w-4 h-4 text-green-600" />Enter 6-Digit OTP <span className="text-red-500">*</span></Label>
                                             <Input type="text" maxLength={6} placeholder="● ● ● ● ● ●" className="tracking-widest text-center font-mono text-2xl h-14" value={formData.otp} onChange={(e) => updateField('otp', e.target.value)} />
                                             <p className="text-xs text-gray-500 mt-2 text-center">
-                                                Didn't receive the code? <button onClick={handleSendOTP} className="text-blue-600 hover:underline font-semibold">Resend</button>
+                                                Didn't receive the code? <button onClick={handleSendRegistrationOTP} className="text-blue-600 hover:underline font-semibold">Resend</button>
                                             </p>
                                         </div>
                                     )}

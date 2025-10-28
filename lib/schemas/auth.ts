@@ -48,10 +48,15 @@ export const otpVerificationSchema = z.object({
 })
 
 export const loginSchema = z.object({
+  email: z.string().email('Invalid email address').optional(),
   mobile: z.string()
     .regex(mobileRegex, 'Invalid mobile number')
-    .transform(val => val.replace(/\D/g, '')),
+    .transform(val => val.replace(/\D/g, ''))
+    .optional(),
   otp: z.string().length(6, 'OTP must be 6 digits'),
+}).refine(data => data.email || data.mobile, {
+  message: "Either email or mobile must be provided",
+  path: ["email", "mobile"]
 })
 
 export const completeOnboardingSchema = z.object({
