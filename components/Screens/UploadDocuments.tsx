@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Upload, CheckCircle, FileText, X, File, TrendingUp, Building2, Shield, Info, AlertCircle, Loader2 } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
 import { useAuthStore } from '@/store/authStore'
-import { useDocumentUpload, useDocumentList, useDocumentDelete, DocumentUploadResponse, DocumentListItem } from '@/lib/api/documents'
+import { useDocumentUpload, useDocumentList, useDocumentDelete, useAIExtraction, DocumentUploadResponse, DocumentListItem } from '@/lib/api/documents'
 import { useToast } from '@/hooks/use-toast'
 import { ConfirmationModal } from '@/components/ui/confirmation-modal'
 
@@ -35,7 +35,9 @@ export default function UploadScreen() {
     const { uploadDocument } = useDocumentUpload()
     const { getDocumentList } = useDocumentList()
     const { deleteDocument } = useDocumentDelete()
+    const { extractData } = useAIExtraction()
     const { toast } = useToast()
+    const [isExtracting, setIsExtracting] = useState(false)
     const [documents, setDocuments] = useState<Document[]>([])
     const [documentList, setDocumentList] = useState<DocumentListItem[]>([])
     const [activeTab, setActiveTab] = useState<TabType>('bank_statement')
@@ -229,6 +231,132 @@ export default function UploadScreen() {
         setDocumentToDelete(null)
     }
 
+    // Build full URL from relative URL
+    const buildFullUrl = (url: string): string => {
+        if (!url) return ''
+        // If already a full URL, return as is
+        if (url.startsWith('http://') || url.startsWith('https://')) {
+            return url
+        }
+        // Build full URL from backend base URL
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'
+        return `${backendUrl}${url.startsWith('/') ? url : '/' + url}`
+    }
+
+    // Map documents to files object for AI extraction
+    const buildFilesObject = (docs: DocumentListItem[]): Record<string, string> => {
+        const files: Record<string, string> = {}
+
+        docs.forEach(doc => {
+            if (doc.url) {
+                const fullUrl = buildFullUrl(doc.url)
+                // Map based on filename patterns or use original filename
+                let fileKey = ''
+                const filename = doc.originalName?.toLowerCase() || doc.filename?.toLowerCase() || ''
+
+                // Try to categorize based on filename patterns
+                if (filename.includes('bank') || filename.includes('statement')) {
+                    fileKey = 'bank_statement.pdf'
+                } else if (filename.includes('gst') || filename.includes('return')) {
+                    fileKey = 'gst_return.pdf'
+                } else if (filename.includes('financial') || filename.includes('p&l') || filename.includes('profit') || filename.includes('balance')) {
+                    fileKey = 'financial_statement.pdf'
+                } else if (filename.includes('it') && filename.includes('return')) {
+                    fileKey = 'it_returns.pdf'
+                } else {
+                    // Use original filename as key
+                    fileKey = doc.originalName || doc.filename || 'document.pdf'
+                }
+
+                if (fileKey && fullUrl) {
+                    files[fileKey] = fullUrl
+                }
+            }
+        })
+
+        return files
+    }
+
+    // Handle Continue button click
+    const handleContinue = async () => {
+        if (!user) {
+            toast({
+                title: 'Error',
+                description: 'User not authenticated',
+                variant: 'destructive'
+            })
+            return
+        }
+
+        if (documentList.length === 0) {
+            toast({
+                title: 'No Documents',
+                description: 'Please upload at least one document before continuing',
+                variant: 'destructive'
+            })
+            return
+        }
+
+        setIsExtracting(true)
+        try {
+            console.log('🚀 Starting AI extraction with documents:', documentList)
+
+            const files = buildFilesObject(documentList)
+            console.log('📄 Files object for extraction:', files)
+
+            if (Object.keys(files).length === 0) {
+                toast({
+                    title: 'No Valid Files',
+                    description: 'No files with valid URLs found',
+                    variant: 'destructive'
+                })
+                setIsExtracting(false)
+                return
+            }
+
+            const extractionParams = {
+                files,
+                userId: user.id,
+                applicationId: undefined, // Can be added from context/store if needed
+                metadata: {
+                    vintageYears: 3, // Default values, can be made dynamic
+                    businessType: (user as any).businessType || 'manufacturing',
+                    industry: (user as any).industry || 'textiles',
+                    loanAmount: 5000000 // Default, can be from form/store
+                },
+                bankCriteria: {
+                    minDSCR: 1.2,
+                    minCreditScore: 650,
+                    minTurnover: 10000000
+                }
+            }
+
+            console.log('🤖 Calling AI extraction API:', extractionParams)
+            const response = await extractData(extractionParams)
+
+            console.log('✅ AI extraction response:', response)
+
+            toast({
+                title: 'Extraction Started',
+                description: 'Document extraction has been initiated successfully',
+                variant: 'default'
+            })
+
+            // Navigate to next step after successful extraction
+            setCurrentStep('credit-passport')
+
+        } catch (error: any) {
+            console.error('❌ AI extraction error:', error)
+            toast({
+                title: 'Extraction Failed',
+                description: error?.response?.data?.message || 'Failed to start document extraction',
+                variant: 'destructive'
+            })
+        } finally {
+            setIsExtracting(false)
+        }
+    }
+
     const currentTabDocs = documents.filter(d => d.type === activeTab)
     const totalDocs = documents.length
     const uploadedDocs = documents.filter(d => d.status === 'uploaded' || d.status === 'processed').length
@@ -276,10 +404,18 @@ export default function UploadScreen() {
                             </button>
                             {totalDocs > 0 && (
                                 <button
-                                    onClick={() => setCurrentStep('credit-passport')}
-                                    className="px-6 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                                    onClick={handleContinue}
+                                    disabled={isExtracting}
+                                    className="px-6 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                 >
-                                    Continue
+                                    {isExtracting ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                            Extracting...
+                                        </>
+                                    ) : (
+                                        'Continue'
+                                    )}
                                 </button>
                             )}
                         </div>

@@ -214,3 +214,54 @@ export function useDocumentDelete() {
 
   return { deleteDocument }
 }
+
+export interface AIExtractionParams {
+  files: Record<string, string> // Map of file types to full URLs
+  userId: string
+  applicationId?: string
+  metadata?: {
+    vintageYears?: number
+    businessType?: string
+    industry?: string
+    loanAmount?: number
+  }
+  bankCriteria?: {
+    minDSCR?: number
+    minCreditScore?: number
+    minTurnover?: number
+  }
+}
+
+export interface AIExtractionResponse {
+  success: boolean
+  message: string
+  data: {
+    extractionId: string
+    status: string
+    results?: any
+  }
+}
+
+export function useAIExtraction() {
+  const extractData = async (params: AIExtractionParams): Promise<AIExtractionResponse> => {
+    console.log('🤖 AI Extraction: Starting extraction with params:', params)
+    
+    try {
+      const response = await api.post('/ai/jobs/extract', params)
+      
+      console.log('🤖 AI Extraction: Response received:', response.data)
+      return response.data
+    } catch (error: any) {
+      console.error('🤖 AI Extraction: Error occurred:', error)
+      console.error('🤖 AI Extraction: Error response:', error.response?.data)
+      
+      if (isCorsError(error)) {
+        console.error('🚨 CORS Error in AI extraction:', getCorsErrorMessage(error))
+      }
+      
+      throw error
+    }
+  }
+
+  return { extractData }
+}
