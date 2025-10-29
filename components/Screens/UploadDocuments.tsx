@@ -4,13 +4,14 @@ import { useState, useEffect } from 'react'
 import { Upload, CheckCircle, FileText, X, File, TrendingUp, Building2, Shield, Info, AlertCircle, Loader2 } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
 import { useAuthStore } from '@/store/authStore'
-import { useDocumentUpload, useDocumentList, DocumentUploadResponse, DocumentListItem } from '@/lib/api/documents'
+import { useDocumentUpload, useDocumentList, useDocumentDelete, DocumentUploadResponse, DocumentListItem } from '@/lib/api/documents'
 import { useToast } from '@/hooks/use-toast'
+import { ConfirmationModal } from '@/components/ui/confirmation-modal'
 
-// Updated Document interface to match API response
 interface Document {
     id: string
     name: string
+    documentId: string
     type: 'gst_return' | 'bank_statement' | 'financial'
     status: 'uploading' | 'uploaded' | 'processing' | 'processed' | 'failed'
     uploadProgress?: number
@@ -33,12 +34,15 @@ export default function UploadScreen() {
     const { user } = useAuthStore()
     const { uploadDocument } = useDocumentUpload()
     const { getDocumentList } = useDocumentList()
+    const { deleteDocument } = useDocumentDelete()
     const { toast } = useToast()
     const [documents, setDocuments] = useState<Document[]>([])
     const [documentList, setDocumentList] = useState<DocumentListItem[]>([])
     const [activeTab, setActiveTab] = useState<TabType>('bank_statement')
     const [dragActive, setDragActive] = useState(false)
     const [loadingDocuments, setLoadingDocuments] = useState(false)
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+    const [documentToDelete, setDocumentToDelete] = useState<Document | null>(null)
 
     // Fetch document list from API
     const fetchDocumentList = async () => {
@@ -59,6 +63,7 @@ export default function UploadScreen() {
                 type: 'bank_statement' as TabType, // Default type, you can categorize based on filename
                 status: 'uploaded' as const,
                 url: doc.url,
+                documentId: doc.documentId,
                 uploadedAt: doc.createdAt
             }))
 
@@ -141,57 +146,18 @@ export default function UploadScreen() {
                 continue
             }
 
-            const document: Document = {
-                id: Math.random().toString(36).substr(2, 9),
-                name: file.name,
-                type: activeTab,
-                status: 'uploading',
-                uploadProgress: 0,
-                file: file
-            }
 
-            setDocuments(prev => [...prev, document])
-            console.log('Document added to state:', document)
 
             try {
                 console.log('Starting upload for:', file.name)
-                console.log('Upload params:', {
-                    file: file.name,
-                    uploadedBy: user.id,
-                    filename: file.name
-                })
-
-                // Simulate upload progress
-                let progress = 0
-                const progressInterval = setInterval(() => {
-                    progress += 10
-                    if (progress < 90) {
-                        setDocuments(prev => prev.map(doc =>
-                            doc.id === document.id ? { ...doc, uploadProgress: progress } : doc
-                        ))
-                    }
-                }, 200)
-
-                const response = await uploadDocument({
+                await uploadDocument({
                     file,
                     uploadedBy: user.id,
                     filename: file.name
                 })
 
-                console.log('Upload response:', response)
-                clearInterval(progressInterval)
-
-                setDocuments(prev => prev.map(doc =>
-                    doc.id === document.id
-                        ? {
-                            ...doc,
-                            uploadProgress: 100,
-                            status: 'uploaded',
-                            url: response.data.url,
-                            uploadedAt: response.data.createdAt
-                        }
-                        : doc
-                ))
+                // Always refresh from API to reflect real data
+                await fetchDocumentList()
 
                 toast({
                     title: 'Upload Successful',
@@ -199,28 +165,8 @@ export default function UploadScreen() {
                     variant: 'default'
                 })
 
-                // Refresh document list after successful upload
-                console.log('🔄 Upload successful, refreshing document list')
-                fetchDocumentList()
-
             } catch (error: any) {
                 console.error('Upload error:', error)
-                console.error('Error details:', {
-                    message: error?.message,
-                    response: error?.response?.data,
-                    status: error?.response?.status
-                })
-
-                setDocuments(prev => prev.map(doc =>
-                    doc.id === document.id
-                        ? {
-                            ...doc,
-                            status: 'failed',
-                            error: error?.response?.data?.message || 'Upload failed'
-                        }
-                        : doc
-                ))
-
                 toast({
                     title: 'Upload Failed',
                     description: error?.response?.data?.message || 'Failed to upload file',
@@ -243,6 +189,44 @@ export default function UploadScreen() {
         setDragActive(false)
         console.log('📦 Drop event:', e.dataTransfer.files)
         handleFileUpload(e.dataTransfer.files)
+    }
+
+    // Handle delete with confirmation modal
+    const handleDeleteClick = (doc: Document) => {
+        setDocumentToDelete(doc)
+        setDeleteModalOpen(true)
+    }
+
+    const handleDeleteConfirm = async () => {
+        if (!documentToDelete) return
+        try {
+            console.log('🗑️ Deleting document via API:', documentToDelete.documentId)
+            await deleteDocument(documentToDelete.documentId)
+
+            // Always refresh list from API to reflect real data
+            await fetchDocumentList()
+
+            toast({
+                title: 'Document Deleted',
+                description: `${documentToDelete.name} has been removed`,
+                variant: 'default'
+            })
+        } catch (error: any) {
+            console.error('Delete error:', error)
+            toast({
+                title: 'Delete Failed',
+                description: error?.response?.data?.message || 'Failed to delete document',
+                variant: 'destructive'
+            })
+        } finally {
+            setDeleteModalOpen(false)
+            setDocumentToDelete(null)
+        }
+    }
+
+    const handleDeleteCancel = () => {
+        setDeleteModalOpen(false)
+        setDocumentToDelete(null)
     }
 
     const currentTabDocs = documents.filter(d => d.type === activeTab)
@@ -485,12 +469,7 @@ export default function UploadScreen() {
                                                         <AlertCircle className="w-5 h-5 text-red-500" />
                                                     )}
                                                     <button
-                                                        onClick={() => {
-                                                            setDocuments(prev => prev.filter(d => d.id !== doc.id))
-                                                            // Refresh document list after delete
-                                                            console.log('🗑️ Document deleted, refreshing list')
-                                                            fetchDocumentList()
-                                                        }}
+                                                        onClick={() => handleDeleteClick(doc)}
                                                         className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-gray-100 rounded transition-opacity"
                                                     >
                                                         <X className="w-4 h-4 text-gray-400" />
@@ -515,6 +494,18 @@ export default function UploadScreen() {
                     </div>
                 </div>
             </div>
+
+            {/* Delete Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={deleteModalOpen}
+                onClose={handleDeleteCancel}
+                onConfirm={handleDeleteConfirm}
+                title="Delete Document"
+                description={`Are you sure you want to delete "${documentToDelete?.name}"? This action cannot be undone.`}
+                confirmText="Delete"
+                cancelText="Cancel"
+                variant="destructive"
+            />
         </div>
     )
 }

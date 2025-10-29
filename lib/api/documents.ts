@@ -22,6 +22,7 @@ export interface DocumentListParams {
 export interface DocumentListItem {
   id: string
   filename: string
+  documentId: string
   originalName: string
   uploadedBy: string
   url: string
@@ -143,6 +144,7 @@ export function useDocumentList() {
         filename: d.filename,
         originalName: d.originalName,
         uploadedBy: d.uploadedBy,
+        documentId: d.documentId,
         // If backend returns relative url, keep as-is; consumer can prepend base if needed
         url: d.url,
         createdAt: d.createdAt,
@@ -191,4 +193,24 @@ export function useDocumentList() {
   }
 
   return { getDocumentList }
+}
+
+export function useDocumentDelete() {
+  const deleteDocument = async (documentId: string): Promise<boolean> => {
+    console.log('useDocumentDelete: Deleting document:', documentId)
+    try {
+      const response = await api.delete(`/documents/${documentId}`)
+      console.log('useDocumentDelete: Delete response:', response.data)
+      return Boolean(response?.data?.success ?? true)
+    } catch (error: any) {
+      console.error('useDocumentDelete: Error occurred:', error)
+      console.error('useDocumentDelete: Error response:', error.response?.data)
+      if (isCorsError(error)) {
+        console.error('🚨 CORS Error in document delete:', getCorsErrorMessage(error))
+      }
+      throw error
+    }
+  }
+
+  return { deleteDocument }
 }
