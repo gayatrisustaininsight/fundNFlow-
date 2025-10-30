@@ -99,9 +99,9 @@ const BusinessOnboarding = () => {
                         </div>
 
                         <div className="flex gap-3 pt-4">
-                            <Button variant="outline" onClick={() => router.back()} className="flex-1">
-                                <ArrowLeft className="w-4 h-4 mr-2" />
-                                Back
+                            <Button variant="outline" onClick={() => router.push('/documents')} className="flex-1">
+                                {/* <ArrowLeft className="w-4 h-4 mr-2" /> */}
+                                Do it later
                             </Button>
                             <Button onClick={handleComplete} className="flex-1" disabled={isLoading}>
                                 {isLoading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />Finishing...</>) : 'Finish'}

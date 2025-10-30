@@ -120,6 +120,9 @@ export const useAuthStore = create<AuthState>()(
           const { data: response } = await api.post('/login', data, { baseURL: base, withCredentials: false })
           const { user, token } = response.data
           set({ user, token, isAuthenticated: true })
+          if (typeof document !== 'undefined' && token) {
+            document.cookie = `auth_token=${token}; path=/; SameSite=Lax`
+          }
           toast({ title: 'Login successful!', variant: 'default' })
           return { user, token }
         } catch (error: any) {
@@ -135,6 +138,7 @@ export const useAuthStore = create<AuthState>()(
         set({ ...initialState })
         if (typeof window !== 'undefined') {
           localStorage.removeItem('auth-storage')
+          document.cookie = 'auth_token=; path=/; Max-Age=0; SameSite=Lax'
         }
       },
       
@@ -244,6 +248,9 @@ export const useAuthStore = create<AuthState>()(
           const { data } = await api.post('/verify-otp', { mobile, otp }, { baseURL: base, withCredentials: false })
           const { user, token } = data.data
           set({ user, token, isAuthenticated: true, otpVerified: true })
+          if (typeof document !== 'undefined' && token) {
+            document.cookie = `auth_token=${token}; path=/; SameSite=Lax`
+          }
           
           toast({ title: 'Login successful!', variant: 'default' })
           return { user, token }
@@ -268,6 +275,9 @@ export const useAuthStore = create<AuthState>()(
           const { data } = await api.post('/register', registrationPayload, { baseURL: base, withCredentials: false })
           const { user, token } = data.data
           set({ user, token, isAuthenticated: true })
+          if (typeof document !== 'undefined' && token) {
+            document.cookie = `auth_token=${token}; path=/; SameSite=Lax`
+          }
           
           toast({ title: 'Registration completed successfully!', variant: 'default' })
           return { user, token }

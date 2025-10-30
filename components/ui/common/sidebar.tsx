@@ -3,7 +3,7 @@ import { Home, TrendingUp, CreditCard, FileText, Upload, BarChart3, UserCircle, 
 import { Button } from '../Button'
 import { Badge } from '../badge'
 import { ChevronRight, ChevronLeft } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAppStore } from '@/store/appStore'
 import { useRouter, usePathname } from 'next/navigation'
 
@@ -18,6 +18,26 @@ const Sidebar = () => {
         pathname
     )
     const router = useRouter()
+
+    // Local profile state sourced from persisted auth storage
+    const [profile, setProfile] = useState<{ businessName?: string; email?: string; mobile?: string }>({})
+
+    useEffect(() => {
+        try {
+            if (typeof window === 'undefined') return
+            const raw = localStorage.getItem('auth-storage')
+            if (!raw) return
+            const parsed = JSON.parse(raw)
+            const user = parsed?.state?.user || {}
+            setProfile({
+                businessName: user?.businessName,
+                email: user?.email,
+                mobile: user?.mobile,
+            })
+        } catch (e) {
+            // fail silently
+        }
+    }, [])
 
     const menuItems = [
         { id: 'dashboard', icon: Home, label: 'Dashboard', badge: null, route: '/dashboard' },
@@ -102,14 +122,14 @@ const Sidebar = () => {
                     <div className="p-4 border-b border-gray-200">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-semibold">
-                                {businessData.businessName ? businessData.businessName.charAt(0) : 'B'}
+                                {(profile.businessName || businessData.businessName || 'B').charAt(0)}
                             </div>
                             <div className="flex-1 min-w-0">
                                 <div className="font-semibold text-sm truncate">
-                                    {businessData.businessName || 'Business Name'}
+                                    {profile.businessName || businessData.businessName || 'Business Name'}
                                 </div>
                                 <div className="text-xs text-gray-500 truncate">
-                                    {businessData.email || 'email@company.com'}
+                                    {profile.email || profile.mobile || businessData.email || 'email@company.com'}
                                 </div>
                             </div>
                         </div>
@@ -119,7 +139,7 @@ const Sidebar = () => {
                 {sidebarCollapsed && (
                     <div className="p-4 border-b border-gray-200 flex justify-center">
                         <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-semibold">
-                            {businessData.businessName ? businessData.businessName.charAt(0) : 'B'}
+                            {(profile.businessName || businessData.businessName || 'B').charAt(0)}
                         </div>
                     </div>
                 )}
