@@ -98,10 +98,9 @@ api.interceptors.response.use(
         
         // Handle authentication errors
         if (error.response?.status === 401) {
-            console.log('API Response Interceptor - 401 error, removing auth storage')
-            if (typeof window !== 'undefined') {
-                localStorage.removeItem('auth-storage')
-            }
+            console.log('API Response Interceptor - 401 error')
+            // Do not clear persisted session automatically.
+            // Rely on middleware + app logic to redirect and handle sign-out explicitly.
         }
         
         return Promise.reject(error)
