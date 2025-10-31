@@ -7,6 +7,8 @@ import { useAuthStore } from '@/store/authStore'
 import { useDocumentUpload, useDocumentList, useDocumentDelete, useAIExtraction, DocumentUploadResponse, DocumentListItem } from '@/lib/api/documents'
 import { useToast } from '@/hooks/use-toast'
 import { ConfirmationModal } from '@/components/ui/confirmation-modal'
+import ExtractionMonitor from '@/components/AI/ExtractionMonitor'
+import Modal from '@/components/ui/Modal'
 
 interface Document {
     id: string
@@ -45,6 +47,7 @@ export default function UploadScreen() {
     const [loadingDocuments, setLoadingDocuments] = useState(false)
     const [deleteModalOpen, setDeleteModalOpen] = useState(false)
     const [documentToDelete, setDocumentToDelete] = useState<Document | null>(null)
+    const [extractionJobId, setExtractionJobId] = useState<string | null>(null)
 
     // Fetch document list from API
     const fetchDocumentList = async () => {
@@ -335,6 +338,8 @@ export default function UploadScreen() {
             const response = await extractData(extractionParams)
 
             console.log('✅ AI extraction response:', response)
+            const jobId = response?.data?.jobId || response?.data?.data?.jobId || response?.data?.extractionId
+            if (jobId) setExtractionJobId(jobId)
 
             toast({
                 title: 'Extraction Started',
@@ -342,8 +347,8 @@ export default function UploadScreen() {
                 variant: 'default'
             })
 
-            // Navigate to next step after successful extraction
-            setCurrentStep('credit-passport')
+            // Optionally navigate; keep user on page to view live progress
+            // setCurrentStep('credit-passport')
 
         } catch (error: any) {
             console.error('❌ AI extraction error:', error)
@@ -642,6 +647,19 @@ export default function UploadScreen() {
                 cancelText="Cancel"
                 variant="destructive"
             />
+
+            {/* Extraction Monitor */}
+            {extractionJobId && (
+                <Modal isOpen={true} onClose={() => setExtractionJobId(null)} maxWidthClassName="max-w-4xl">
+                    <div className="p-4 border-b flex items-center justify-between">
+                        <div className="font-semibold">Live Extraction Progress</div>
+                        <button onClick={() => setExtractionJobId(null)} className="text-gray-500 hover:text-gray-700">✕</button>
+                    </div>
+                    <div className="p-4">
+                        <ExtractionMonitor jobId={extractionJobId} onClose={() => setExtractionJobId(null)} />
+                    </div>
+                </Modal>
+            )}
         </div>
     )
 }

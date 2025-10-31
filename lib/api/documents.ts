@@ -236,9 +236,19 @@ export interface AIExtractionResponse {
   success: boolean
   message: string
   data: {
-    extractionId: string
-    status: string
+    extractionId?: string
+    jobId?: string
+    status?: string
+    message?: string
+    statusUrl?: string
     results?: any
+    data?: {
+      jobId?: string
+      status?: string
+      totalFiles?: number
+      estimatedDuration?: number
+      statusUrl?: string
+    }
   }
 }
 
@@ -264,4 +274,39 @@ export function useAIExtraction() {
   }
 
   return { extractData }
+}
+
+export interface AIJobStatusResponse {
+  success: boolean
+  message?: string
+  data: {
+    id: string
+    status: 'queued' | 'running' | 'completed' | 'failed'
+    progress?: number
+    startedAt?: string
+    updatedAt?: string
+    finishedAt?: string
+    logs?: Array<{ timestamp: string; level: 'info' | 'warn' | 'error'; message: string }>
+    results?: any
+    error?: { code?: string; message?: string; details?: any }
+  }
+}
+
+export function useAIJobs() {
+  const getJobStatus = async (jobId: string): Promise<AIJobStatusResponse> => {
+    console.log('🤖 Fetching job status:', jobId)
+    try {
+      const response = await api.get(`/ai/jobs/${jobId}/status`)
+      console.log('🤖 Job status response:', response.data)
+      return response.data
+    } catch (error: any) {
+      console.error('🤖 Job status error:', error)
+      if (isCorsError(error)) {
+        console.error('🚨 CORS Error in AI job status:', getCorsErrorMessage(error))
+      }
+      throw error
+    }
+  }
+
+  return { getJobStatus }
 }
