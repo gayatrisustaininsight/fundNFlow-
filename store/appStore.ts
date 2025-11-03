@@ -1,12 +1,13 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Step, BusinessData, Document, CreditScore, LoanOffer, Application } from '@/types'
+import type { Step, BusinessData, Document, CreditScore, LoanOffer, Application, AnalysisResult } from '@/types'
 
 interface AppState {
     currentStep: Step
     businessData: BusinessData
     documents: Document[]
     creditScore: CreditScore | null
+    analysis: AnalysisResult | null
     loanOffers: LoanOffer[]
     applications: Application[]
     isLoading: boolean
@@ -17,6 +18,7 @@ interface AppState {
     addDocument: (document: Document) => void
     updateDocument: (id: string, updates: Partial<Document>) => void
     setCreditScore: (score: CreditScore) => void
+    setAnalysis: (analysis: AnalysisResult | null) => void
     setLoanOffers: (offers: LoanOffer[]) => void
     addApplication: (application: Application) => void
     updateApplication: (id: string, updates: Partial<Application>) => void
@@ -39,6 +41,7 @@ export const useAppStore = create<AppState>()(
             businessData: initialBusinessData,
             documents: [],
             creditScore: null,
+            analysis: null,
             loanOffers: [],
             applications: [],
             isLoading: false,
@@ -64,6 +67,8 @@ export const useAppStore = create<AppState>()(
 
             setCreditScore: (score) => set({ creditScore: score }),
 
+            setAnalysis: (analysis) => set({ analysis }),
+
             setLoanOffers: (offers) => set({ loanOffers: offers }),
 
             addApplication: (application) =>
@@ -86,6 +91,7 @@ export const useAppStore = create<AppState>()(
                     businessData: initialBusinessData,
                     documents: [],
                     creditScore: null,
+                    analysis: null,
                     loanOffers: [],
                     applications: [],
                     isLoading: false,
@@ -97,6 +103,7 @@ export const useAppStore = create<AppState>()(
                 businessData: state.businessData,
                 documents: state.documents,
                 creditScore: state.creditScore,
+                analysis: state.analysis,
                 applications: state.applications,
             }),
         }

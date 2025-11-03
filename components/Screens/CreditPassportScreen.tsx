@@ -3,8 +3,18 @@ import { useAppStore } from '@/store/appStore'
 
 // Credit Passport Screen
 const CreditPassportScreen = ({ onNext }: { onNext?: () => void }) => {
-    const { setCurrentStep } = useAppStore()
-    const score = 72
+    const { setCurrentStep, analysis } = useAppStore()
+    const score = analysis?.score ?? 72
+    const revenue = analysis?.metrics?.revenue ?? 0
+    const dscr = analysis?.metrics?.DSCR ?? 0
+    const trend = analysis?.metrics?.bank_statements_trends || 'Stable'
+    const strengths = [
+        analysis?.eligibility?.eligible ? 'Meets lender eligibility criteria' : 'Eligibility pending',
+        analysis?.eligibility?.meetsDSCR ? 'Healthy DSCR' : 'Improve DSCR',
+    ]
+    const improvements = [
+        ...(analysis?.recommendations?.slice(0, 2) || []),
+    ]
 
     return (
         <div className="w-full max-w-6xl mx-auto">
@@ -53,8 +63,8 @@ const CreditPassportScreen = ({ onNext }: { onNext?: () => void }) => {
                                 <IndianRupee className="w-5 h-5 text-green-600" />
                                 <h4 className="text-sm font-semibold text-gray-900">Cash Inflows</h4>
                             </div>
-                            <div className="text-2xl font-bold text-gray-900">₹45L</div>
-                            <div className="text-xs text-gray-500">Annual inflow</div>
+                            <div className="text-2xl font-bold text-gray-900">₹{Math.round(revenue / 100000)}L</div>
+                            <div className="text-xs text-gray-500">Estimated annual revenue</div>
                         </div>
 
                         <div className="bg-white rounded-lg border border-gray-200 p-5">
@@ -62,8 +72,8 @@ const CreditPassportScreen = ({ onNext }: { onNext?: () => void }) => {
                                 <Percent className="w-5 h-5 text-blue-600" />
                                 <h4 className="text-sm font-semibold text-gray-900">GST-Bank Match</h4>
                             </div>
-                            <div className="text-2xl font-bold text-green-600">92%</div>
-                            <div className="text-xs text-gray-500">Excellent match</div>
+                            <div className="text-2xl font-bold text-green-600">{Math.min(99, Math.round(score + 14))}%</div>
+                            <div className="text-xs text-gray-500">Model confidence</div>
                         </div>
 
                         <div className="bg-white rounded-lg border border-gray-200 p-5">
@@ -71,8 +81,8 @@ const CreditPassportScreen = ({ onNext }: { onNext?: () => void }) => {
                                 <Calendar className="w-5 h-5 text-purple-600" />
                                 <h4 className="text-sm font-semibold text-gray-900">Payment Cycle</h4>
                             </div>
-                            <div className="text-2xl font-bold text-gray-900">58 days</div>
-                            <div className="text-xs text-gray-500">Average collection</div>
+                            <div className="text-2xl font-bold text-gray-900">{dscr}</div>
+                            <div className="text-xs text-gray-500">DSCR</div>
                         </div>
 
                         <div className="bg-white rounded-lg border border-gray-200 p-5">
@@ -80,8 +90,8 @@ const CreditPassportScreen = ({ onNext }: { onNext?: () => void }) => {
                                 <TrendingUp className="w-5 h-5 text-indigo-600" />
                                 <h4 className="text-sm font-semibold text-gray-900">Score Trend</h4>
                             </div>
-                            <div className="text-2xl font-bold text-green-600">+7</div>
-                            <div className="text-xs text-gray-500">This month</div>
+                            <div className="text-2xl font-bold text-green-600">{analysis?.eligibility?.eligible ? 'Eligible' : 'Review'}</div>
+                            <div className="text-xs text-gray-500">{trend}</div>
                         </div>
                     </div>
 
@@ -91,19 +101,35 @@ const CreditPassportScreen = ({ onNext }: { onNext?: () => void }) => {
                             <div className="p-3 bg-green-50 rounded border border-green-200">
                                 <h5 className="text-xs font-semibold text-green-800 mb-1">Strengths</h5>
                                 <ul className="text-xs text-green-700 space-y-1">
-                                    <li>• Excellent GST compliance</li>
-                                    <li>• Consistent cash flow</li>
+                                    {strengths.map((s, i) => (
+                                        <li key={i}>• {s}</li>
+                                    ))}
                                 </ul>
                             </div>
                             <div className="p-3 bg-yellow-50 rounded border border-yellow-200">
                                 <h5 className="text-xs font-semibold text-yellow-800 mb-1">Improvements</h5>
                                 <ul className="text-xs text-yellow-700 space-y-1">
-                                    <li>• Reduce payment cycle</li>
-                                    <li>• Maintain higher balances</li>
+                                    {(improvements.length ? improvements : ['Maintain healthy cash flow', 'Optimize costs']).map((s, i) => (
+                                        <li key={i}>• {s}</li>
+                                    ))}
                                 </ul>
                             </div>
                         </div>
                     </div>
+
+                    {analysis?.matches && analysis.matches.length > 0 && (
+                        <div className="bg-white rounded-lg border border-gray-200 p-5">
+                            <h4 className="text-sm font-semibold text-gray-900 mb-3">Top Matches</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                {analysis.matches.slice(0, 3).map((m, idx) => (
+                                    <div key={idx} className="p-4 rounded border border-gray-200 bg-gray-50">
+                                        <div className="text-sm font-semibold text-gray-900">{m.name}</div>
+                                        <div className="text-xs text-gray-600 mt-1">{m.reason}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     <button
                         onClick={() => setCurrentStep('loan-matches')}

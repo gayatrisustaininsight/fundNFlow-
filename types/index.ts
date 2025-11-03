@@ -57,3 +57,32 @@ export type Step =
   | 'credit-passport'
   | 'loan-matches'
   | 'dashboard'
+
+export interface AnalysisMetrics {
+  revenue?: number
+  EBITDA?: number
+  netProfit?: number
+  DSCR?: number
+  ITR_gross_receipts?: number
+  bank_statements_trends?: string
+}
+
+export interface AnalysisEligibility {
+  meetsDSCR?: boolean
+  meetsCreditScore?: boolean
+  meetsTurnover?: boolean
+  eligible?: boolean
+}
+
+export interface AnalysisMatch {
+  name: string
+  reason: string
+}
+
+export interface AnalysisResult {
+  score?: number
+  metrics?: AnalysisMetrics
+  eligibility?: AnalysisEligibility
+  recommendations?: string[]
+  matches?: AnalysisMatch[]
+}
