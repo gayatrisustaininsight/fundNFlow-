@@ -84,6 +84,10 @@ export default function ExtractionMonitor({ jobId, onClose, refreshIntervalMs = 
             }
             setCurrentStep('credit-passport')
             if (onClose) onClose()
+        } else if (status?.status === 'failed') {
+            setAnalysis(null)
+            setCurrentStep('upload')
+            if (onClose) onClose()
         }
     }, [status?.status])
 
@@ -137,13 +141,18 @@ export default function ExtractionMonitor({ jobId, onClose, refreshIntervalMs = 
     const processedCount = summary?.processedFiles || (fileResults ? Object.keys(fileResults).length : 0)
     const totalCount = summary?.totalFiles || allFiles.length || 0
 
-    const overallProgress = totalCount > 0 ? Math.round((processedCount / totalCount) * 100) : (status?.status === 'completed' ? 100 : status?.status === 'running' ? 50 : 0)
+    const backendPct = (status as any)?.progress?.percentage
+    const overallProgress = typeof backendPct === 'number'
+        ? Math.max(0, Math.min(100, Math.round(backendPct)))
+        : totalCount > 0
+            ? Math.round((processedCount / totalCount) * 100)
+            : (status?.status === 'completed' ? 100 : status?.status === 'running' ? 50 : 0)
 
     const getFileStatus = (fileResult: FileResult | undefined): 'processing' | 'success' | 'failed' => {
         if (!fileResult) return 'processing'
         const status = fileResult.status?.toLowerCase()
         if (status === 'failed' || fileResult.error) return 'failed'
-        if (status === 'success' || status === 'completed') return 'success'
+        if (status === 'success' || status === 'completed' || status === 'extracted') return 'success'
         return 'processing'
     }
 
