@@ -237,6 +237,7 @@ export default function ExtractionMonitor({ jobId, onClose, refreshIntervalMs = 
                                             : fileStatus === 'failed'
                                                 ? 'from-red-500 to-red-600'
                                                 : 'from-blue-500 to-blue-600'
+                                        const perFileProgress = fileStatus === 'success' ? 100 : fileStatus === 'failed' ? 0 : overallProgress
                                         const containerClasses = fileStatus === 'success'
                                             ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-300 shadow-sm'
                                             : fileStatus === 'failed'
@@ -300,11 +301,10 @@ export default function ExtractionMonitor({ jobId, onClose, refreshIntervalMs = 
                                                                 ⚠ {fileResult.error}
                                                             </div>
                                                         )}
-                                                        {isProcessing && (
-                                                            <div className="mt-3 h-2 bg-white/60 rounded-full overflow-hidden shadow-inner">
-                                                                <div className={`h-full bg-gradient-to-r ${barGradient} rounded-full animate-pulse transition-all`} style={{ width: '70%' }} />
-                                                            </div>
-                                                        )}
+                                                        <div className="mt-3 h-2 bg-white/60 rounded-full overflow-hidden shadow-inner">
+                                                            <div className={`h-full bg-gradient-to-r ${barGradient} rounded-full transition-all`} style={{ width: `${perFileProgress}%` }} />
+                                                        </div>
+                                                        <div className="mt-1 text-[10px] text-gray-600">{perFileProgress}%</div>
                                                     </div>
                                                 </div>
                                             </div>
