@@ -138,7 +138,7 @@ export default function ExtractionMonitor({ jobId, onClose, refreshIntervalMs = 
 
     const fileResults = getFileResults()
     const summary = getSummary()
-    const topLevelFiles = status?.files ? Object.keys(status.files as Record<string, string>) : []
+    const topLevelFiles = (status as any)?.files ? Object.keys(((status as any).files as Record<string, string>)) : []
     const allFilesSet = new Set<string>([...(fileResults ? Object.keys(fileResults) : []), ...topLevelFiles])
     const allFiles = Array.from(allFilesSet)
     const progressTotal = (status as any)?.progress?.totalFiles
