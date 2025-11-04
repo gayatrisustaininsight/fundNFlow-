@@ -89,7 +89,6 @@ export default function ExtractionMonitor({ jobId, onClose, refreshIntervalMs = 
         } else if (status?.status === 'failed') {
             setAnalysis(null)
             setCurrentStep('upload')
-            if (onClose) onClose()
         }
     }, [status?.status])
 
@@ -139,9 +138,17 @@ export default function ExtractionMonitor({ jobId, onClose, refreshIntervalMs = 
 
     const fileResults = getFileResults()
     const summary = getSummary()
-    const allFiles = fileResults ? Object.keys(fileResults) : []
-    const processedCount = summary?.processedFiles || (fileResults ? Object.keys(fileResults).length : 0)
-    const totalCount = summary?.totalFiles || allFiles.length || 0
+    const topLevelFiles = status?.files ? Object.keys(status.files as Record<string, string>) : []
+    const allFilesSet = new Set<string>([...(fileResults ? Object.keys(fileResults) : []), ...topLevelFiles])
+    const allFiles = Array.from(allFilesSet)
+    const progressTotal = (status as any)?.progress?.totalFiles
+    const progressProcessed = (status as any)?.progress?.processedFiles
+    const processedCount = typeof progressProcessed === 'number'
+        ? progressProcessed
+        : (summary?.processedFiles || (fileResults ? Object.keys(fileResults).length : 0))
+    const totalCount = typeof progressTotal === 'number'
+        ? progressTotal
+        : (summary?.totalFiles || allFiles.length || 0)
 
     const backendPct = (status as any)?.progress?.percentage
     const overallProgress = typeof backendPct === 'number'
@@ -225,7 +232,7 @@ export default function ExtractionMonitor({ jobId, onClose, refreshIntervalMs = 
                                 <div className="space-y-3">
                                     <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">File Status</h4>
                                     {allFiles.map((filename) => {
-                                        const fileResult = fileResults[filename]
+                                        const fileResult = fileResults ? fileResults[filename] : undefined
                                         const fileStatus = getFileStatus(fileResult)
                                         const isProcessing = fileStatus === 'processing'
                                         const isCurrent = isProcessing && allFiles.filter((f, i) => {
