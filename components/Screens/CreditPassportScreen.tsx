@@ -1,12 +1,9 @@
 'use client'
 import { Calendar, IndianRupee, Percent, TrendingUp, AlertTriangle } from "lucide-react"
 import { useAppStore } from '@/store/appStore'
-import { useAuthStore } from '@/store/authStore'
-import { DocumentUpload } from '@/components/ui/DocumentUpload'
 
 const CreditPassportScreen = ({ onNext }: { onNext?: () => void }) => {
     const { setCurrentStep, analysis } = useAppStore()
-    const { user } = useAuthStore()
     const score = analysis?.score ?? 72
     const revenue = analysis?.metrics?.revenue ?? 0
     const dscr = analysis?.metrics?.DSCR ?? 0
@@ -53,7 +50,12 @@ const CreditPassportScreen = ({ onNext }: { onNext?: () => void }) => {
                     </div>
                     <div className="bg-white rounded-lg border border-gray-200 p-6">
                         <div className="text-sm font-semibold text-gray-900 mb-3">Upload financial documents</div>
-                        <DocumentUpload uploadedBy={user?.id || ''} className="" />
+                        <button
+                            onClick={() => setCurrentStep('upload')}
+                            className="px-6 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                        >
+                            Go to Upload Documents
+                        </button>
                     </div>
                 </div>
             ) : (
