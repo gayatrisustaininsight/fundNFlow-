@@ -80,6 +80,8 @@ export default function ExtractionMonitor({ jobId, onClose, refreshIntervalMs = 
                     eligibility: analysis.eligibility,
                     recommendations: analysis.recommendations,
                     matches: analysis.matches,
+                    isFinancialDocument: analysis.isFinancialDocument,
+                    error: analysis.error,
                 })
             }
             setCurrentStep('credit-passport')

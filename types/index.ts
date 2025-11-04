@@ -72,6 +72,7 @@ export interface AnalysisEligibility {
   meetsCreditScore?: boolean
   meetsTurnover?: boolean
   eligible?: boolean
+  reasons?: string[]
 }
 
 export interface AnalysisMatch {
@@ -85,4 +86,6 @@ export interface AnalysisResult {
   eligibility?: AnalysisEligibility
   recommendations?: string[]
   matches?: AnalysisMatch[]
+  isFinancialDocument?: boolean
+  error?: string
 }
