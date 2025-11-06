@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { useToast } from '@/hooks/use-toast'
-import { useDocumentUpload, DocumentUploadResponse } from '@/lib/api/documents'
+import { useDocumentUpload, DocumentUploadResponse, useDocumentList } from '@/lib/api/documents'
 import {
     Upload,
     FileText,
@@ -46,8 +46,11 @@ export function DocumentUpload({
 }: DocumentUploadProps) {
     const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
     const [isDragOver, setIsDragOver] = useState(false)
+    const [activeDocType, setActiveDocType] = useState<string>('bank_statement')
+    const [serverDocs, setServerDocs] = useState<any[]>([])
     const fileInputRef = useRef<HTMLInputElement>(null)
     const { uploadDocument } = useDocumentUpload()
+    const { getDocumentList } = useDocumentList()
     const { toast } = useToast()
 
     const validateFile = (file: File): string | null => {
@@ -93,6 +96,7 @@ export function DocumentUpload({
                 const response = await uploadDocument({
                     file,
                     uploadedBy,
+                    docType: activeDocType,
                     filename: file.name
                 })
 
@@ -134,7 +138,11 @@ export function DocumentUpload({
                 })
             }
         }
-    }, [uploadDocument, uploadedBy, onUploadSuccess, onUploadError, toast, maxFileSize, acceptedFileTypes])
+        try {
+            const list = await getDocumentList({ page: 1, limit: 20, docType: activeDocType })
+            setServerDocs(list.data.documents)
+        } catch { }
+    }, [uploadDocument, uploadedBy, onUploadSuccess, onUploadError, toast, maxFileSize, acceptedFileTypes, activeDocType, getDocumentList])
 
     const handleDrop = useCallback((e: React.DragEvent) => {
         e.preventDefault()
@@ -194,11 +202,22 @@ export function DocumentUpload({
 
     return (
         <div className={`space-y-4 ${className}`}>
+            <div className="flex items-center gap-2">
+                {['bank_statement', 'gst_return', 'financial_statement', 'other'].map((t) => (
+                    <button
+                        key={t}
+                        onClick={() => setActiveDocType(t)}
+                        className={`px-3 py-1.5 rounded-lg border text-sm ${activeDocType === t ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300'}`}
+                    >
+                        {t.replace('_', ' ').toUpperCase()}
+                    </button>
+                ))}
+            </div>
             {/* Upload Area */}
             <Card
                 className={`relative border-2 border-dashed transition-colors ${isDragOver
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-300 hover:border-gray-400'
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-300 hover:border-gray-400'
                     } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
@@ -308,6 +327,30 @@ export function DocumentUpload({
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            <div className="space-y-2">
+                <h4 className="text-sm font-semibold text-gray-700">Server Documents ({activeDocType.replace('_', ' ')})</h4>
+                <div className="grid grid-cols-1 gap-2">
+                    {serverDocs.map((d) => (
+                        <div key={d.id} className="flex items-center justify-between p-3 bg-white border rounded-lg">
+                            <div className="flex items-center gap-3">
+                                <FileText className="w-4 h-4 text-gray-500" />
+                                <a href={d.url} target="_blank" className="text-sm font-medium text-gray-900">
+                                    {d.originalName || d.filename}
+                                </a>
+                            </div>
+                            <div className="text-xs text-gray-500">
+                                {new Date(d.createdAt).toLocaleString()}
+                            </div>
+                        </div>
+                    ))}
+                    {serverDocs.length === 0 && (
+                        <div className="p-3 text-sm text-gray-500 bg-gray-50 border rounded-lg">
+                            No documents for this type.
+                        </div>
+                    )}
+                </div>
+            </div>
         </div>
     )
 }

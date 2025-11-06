@@ -14,7 +14,7 @@ interface Document {
     id: string
     name: string
     documentId: string
-    type: 'gst_return' | 'bank_statement' | 'financial'
+    type: 'gst_return' | 'bank_statement' | 'financial_statement'
     status: 'uploading' | 'uploaded' | 'processing' | 'processed' | 'failed'
     uploadProgress?: number
     file?: File
@@ -23,12 +23,12 @@ interface Document {
     uploadedAt?: string
 }
 
-type TabType = 'bank_statement' | 'gst_return' | 'financial'
+type TabType = 'bank_statement' | 'gst_return' | 'financial_statement'
 
 const tabs = [
     { id: 'bank_statement' as TabType, label: 'Bank Statements', icon: TrendingUp, required: '12 months' },
     { id: 'gst_return' as TabType, label: 'GST Returns', icon: FileText, required: 'Latest returns' },
-    { id: 'financial' as TabType, label: 'Financial Statements', icon: Building2, required: 'P&L, Balance Sheet' },
+    { id: 'financial_statement' as TabType, label: 'Financial Statements', icon: Building2, required: 'P&L, Balance Sheet' },
 ]
 
 export default function UploadScreen() {
@@ -48,6 +48,8 @@ export default function UploadScreen() {
     const [deleteModalOpen, setDeleteModalOpen] = useState(false)
     const [documentToDelete, setDocumentToDelete] = useState<Document | null>(null)
     const [extractionJobId, setExtractionJobId] = useState<string | null>(null)
+    const [selectedDocIds, setSelectedDocIds] = useState<Set<string>>(new Set())
+    const [selectedDocsMap, setSelectedDocsMap] = useState<Record<string, DocumentListItem>>({})
 
     // Fetch document list from API
     const fetchDocumentList = async () => {
@@ -56,7 +58,7 @@ export default function UploadScreen() {
         setLoadingDocuments(true)
         try {
             console.log('📋 Fetching document list on page load')
-            const response = await getDocumentList({ page: 1, limit: 50 })
+            const response = await getDocumentList({ page: 1, limit: 50, docType: activeTab })
 
             console.log('📋 Document list fetched:', response.data.documents)
             setDocumentList(response.data.documents)
@@ -65,7 +67,7 @@ export default function UploadScreen() {
             const localDocs: Document[] = response.data.documents.map((doc: DocumentListItem) => ({
                 id: doc.id,
                 name: doc.originalName,
-                type: 'bank_statement' as TabType, // Default type, you can categorize based on filename
+                type: activeTab,
                 status: 'uploaded' as const,
                 url: doc.url,
                 documentId: doc.documentId,
@@ -89,10 +91,10 @@ export default function UploadScreen() {
     // Load documents on page load and when user changes
     useEffect(() => {
         if (user) {
-            console.log('🔄 User authenticated, loading documents')
+            console.log('🔄 User authenticated, loading documents for tab:', activeTab)
             fetchDocumentList()
         }
-    }, [user])
+    }, [user, activeTab])
 
     const validateFile = (file: File): string | null => {
         // Check file size (10MB limit)
@@ -158,6 +160,7 @@ export default function UploadScreen() {
                 await uploadDocument({
                     file,
                     uploadedBy: user.id,
+                    docType: activeTab,
                     filename: file.name
                 })
 
@@ -291,10 +294,10 @@ export default function UploadScreen() {
             return
         }
 
-        if (documentList.length === 0) {
+        if (Object.keys(selectedDocsMap).length === 0) {
             toast({
                 title: 'No Documents',
-                description: 'Please upload at least one document before continuing',
+                description: 'Please select at least one document before continuing',
                 variant: 'destructive'
             })
             return
@@ -302,9 +305,9 @@ export default function UploadScreen() {
 
         setIsExtracting(true)
         try {
-            console.log('🚀 Starting AI extraction with documents:', documentList)
+            console.log('🚀 Starting AI extraction with documents:', Object.values(selectedDocsMap))
 
-            const files = buildFilesObject(documentList)
+            const files = buildFilesObject(Object.values(selectedDocsMap))
             console.log('📄 Files object for extraction:', files)
 
             if (Object.keys(files).length === 0) {
@@ -394,6 +397,10 @@ export default function UploadScreen() {
                             <div className="text-right">
                                 <div className="text-2xl font-bold text-gray-900">{uploadedDocs}/{totalDocs}</div>
                                 <div className="text-xs text-gray-500">Uploaded</div>
+                            </div>
+                            <div className="text-right">
+                                <div className="text-2xl font-bold text-blue-600">{Object.keys(selectedDocsMap).length}</div>
+                                <div className="text-xs text-blue-600">Selected</div>
                             </div>
                             <button
                                 onClick={fetchDocumentList}
@@ -600,6 +607,27 @@ export default function UploadScreen() {
                                                     )}
                                                 </div>
                                                 <div className="flex items-center gap-2">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={Boolean(selectedDocIds.has(doc.id))}
+                                                        onChange={(e) => {
+                                                            const nextIds = new Set(selectedDocIds)
+                                                            const found = documentList.find(d => d.id === doc.id)
+                                                            if (e.target.checked) {
+                                                                nextIds.add(doc.id)
+                                                                if (found) setSelectedDocsMap(prev => ({ ...prev, [doc.id]: found }))
+                                                            } else {
+                                                                nextIds.delete(doc.id)
+                                                                setSelectedDocsMap(prev => {
+                                                                    const c = { ...prev }
+                                                                    delete c[doc.id]
+                                                                    return c
+                                                                })
+                                                            }
+                                                            setSelectedDocIds(nextIds)
+                                                        }}
+                                                        className="w-4 h-4 border-gray-300 rounded"
+                                                    />
                                                     {doc.status === 'uploading' && (
                                                         <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />
                                                     )}
