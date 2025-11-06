@@ -32,13 +32,13 @@ const tabs = [
 ]
 
 export default function UploadScreen() {
-    const { setCurrentStep } = useAppStore()
-    const { user } = useAuthStore()
-    const { uploadDocument } = useDocumentUpload()
-    const { getDocumentList } = useDocumentList()
-    const { deleteDocument } = useDocumentDelete()
-    const { extractData } = useAIExtraction()
-    const { toast } = useToast()
+    const { setCurrentStep } = useAppStore();
+    const { user } = useAuthStore();
+    const { uploadDocument } = useDocumentUpload();
+    const { getDocumentList } = useDocumentList();
+    const { deleteDocument } = useDocumentDelete();
+    const { extractData } = useAIExtraction();
+    const { toast } = useToast();
     const [isExtracting, setIsExtracting] = useState(false)
     const [documents, setDocuments] = useState<Document[]>([])
     const [documentList, setDocumentList] = useState<DocumentListItem[]>([])
