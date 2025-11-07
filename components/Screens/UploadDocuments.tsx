@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Upload, CheckCircle, FileText, X, File, TrendingUp, Building2, Shield, Info, AlertCircle, Loader2 } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
 import { useAuthStore } from '@/store/authStore'
@@ -50,8 +50,9 @@ export default function UploadScreen() {
     const [extractionJobId, setExtractionJobId] = useState<string | null>(null)
     const [selectedDocIds, setSelectedDocIds] = useState<Set<string>>(new Set())
     const [selectedDocsMap, setSelectedDocsMap] = useState<Record<string, DocumentListItem>>({})
+    const prevActiveTabRef = useRef<TabType | null>(null)
+    const prevUserRef = useRef<string | null>(null)
 
-    // Fetch document list from API
     const fetchDocumentList = async () => {
         if (!user) return
 
@@ -63,7 +64,6 @@ export default function UploadScreen() {
             console.log('📋 Document list fetched:', response.data.documents)
             setDocumentList(response.data.documents)
 
-            // Convert API documents to local document format for display
             const localDocs: Document[] = response.data.documents.map((doc: DocumentListItem) => ({
                 id: doc.id,
                 name: doc.originalName,
@@ -88,10 +88,20 @@ export default function UploadScreen() {
         }
     }
 
-    // Load documents on page load and when user changes
     useEffect(() => {
-        if (user) {
-            console.log('🔄 User authenticated, loading documents for tab:', activeTab)
+        if (!user) {
+            prevUserRef.current = null
+            return
+        }
+
+        const userId = user.id || null
+        const userChanged = prevUserRef.current !== userId
+        const tabChanged = prevActiveTabRef.current !== null && prevActiveTabRef.current !== activeTab
+        const isInitialFetch = prevActiveTabRef.current === null
+
+        if (isInitialFetch || userChanged || tabChanged) {
+            prevUserRef.current = userId
+            prevActiveTabRef.current = activeTab
             fetchDocumentList()
         }
     }, [user, activeTab])
