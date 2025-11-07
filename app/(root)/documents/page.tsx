@@ -6,7 +6,8 @@ import { Stepper } from '@/components/ui/Stepper'
 import { useAppStore } from '@/store/appStore'
 import React, { useEffect } from 'react'
 import { useDocumentList } from '@/lib/api/documents'
-import { Loader2, FileText, RefreshCw } from 'lucide-react'
+import { Loader2, FileText, RefreshCw, History } from 'lucide-react'
+import Link from 'next/link'
 
 const DocumentsContent = () => {
     const { currentStep, setCurrentStep } = useAppStore()
@@ -44,6 +45,12 @@ const DocumentsContent = () => {
         <div className='min-h-screen w-full bg-gray-50 p-6 flex flex-col items-center'>
 
             <Stepper />
+            <div className="w-full max-w-6xl flex justify-end mb-4">
+                <Link href="/documents/history" className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 hover:bg-gray-50">
+                    <History className="w-4 h-4" />
+                    View Analysis History
+                </Link>
+            </div>
             {currentStep === 'upload' && (
                 <UploadScreen />
             )}

@@ -405,7 +405,7 @@ export default function UploadScreen() {
                             <button
                                 onClick={fetchDocumentList}
                                 disabled={loadingDocuments}
-                                className="px-4 py-2 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                                className="px-4 py-2 bg-gray-600 cursor-pointer text-white rounded-lg font-medium hover:bg-gray-700 transition-colors disabled:opacity-50 flex items-center gap-2"
                             >
                                 {loadingDocuments ? (
                                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -418,7 +418,7 @@ export default function UploadScreen() {
                                 <button
                                     onClick={handleContinue}
                                     disabled={isExtracting}
-                                    className="px-6 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                    className="px-6 py-2.5 bg-blue-600 cursor-pointer text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                 >
                                     {isExtracting ? (
                                         <>

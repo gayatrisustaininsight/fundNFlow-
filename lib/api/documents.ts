@@ -332,3 +332,35 @@ export function useAIJobs() {
 
   return { getJobStatus }
 }
+
+export interface AIJobsHistoryParams {
+  userId: string
+  page?: number
+  limit?: number
+}
+
+export interface AIJobsHistoryResponse {
+  success: boolean
+  message?: string
+  data: {
+    jobs: any[]
+    pagination: {
+      page: number
+      limit: number
+      total: number
+      pages: number
+      hasNextPage: boolean
+      hasPrevPage: boolean
+    }
+  }
+}
+
+export function useAIJobsHistory() {
+  const getAIJobsHistory = async (params: AIJobsHistoryParams): Promise<AIJobsHistoryResponse> => {
+    const { userId, page = 1, limit = 20 } = params
+    const response = await api.get('/ai/jobs/history', { params: { userId, page, limit } })
+    return response.data
+  }
+
+  return { getAIJobsHistory }
+}
