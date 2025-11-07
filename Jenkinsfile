@@ -7,7 +7,7 @@ pipeline {
         DEPLOY_HOST = '74.162.69.143'
         DEPLOY_PATH = '/opt/fundnflow'
         EMAIL_RECIPIENT = 'pardeep.kumar@sustaininsight.com'
-        APP_URL = 'https://dev.fundnflow.com'
+        APP_URL = 'https://fundnflow.com'
     }
 
     stages {
