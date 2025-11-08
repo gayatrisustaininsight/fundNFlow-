@@ -1,28 +1,25 @@
 "use client"
 import { motion } from "framer-motion"
 import { Badge } from "../badge"
-import { Sparkles } from "lucide-react"
+import { Sparkles, X } from "lucide-react"
 import { Button } from "../Button"
 import { ArrowRight } from "lucide-react"
 import { CheckCircle } from "lucide-react"
-import { Building2 } from "lucide-react"
-import { Progress } from "../Progress"
 import { useMemo, useState } from "react"
 import { Input } from "../Input"
 import { useApi } from "@/hooks/useApi"
 import { useToast } from "@/hooks/use-toast"
-import { useRouter } from "next/navigation"
+import Modal from "../Modal"
 
 const HeroSection = () => {
-    const [currentPage, setCurrentPage] = useState('landing')
     const [name, setName] = useState("")
     const [email, setEmail] = useState("")
     const [mobileNumber, setMobileNumber] = useState("")
     const [loanAmount, setLoanAmount] = useState("")
     const [submitting, setSubmitting] = useState(false)
+    const [isModalOpen, setIsModalOpen] = useState(false)
     const { request } = useApi()
     const { toast } = useToast();
-    const router = useRouter();
     const waPhone = useMemo(() => {
         const configured = process.env.NEXT_PUBLIC_WHATSAPP_PHONE || "+91 98714 21515"
         const digits = configured.replace(/[^0-9]/g, "")
@@ -58,12 +55,42 @@ const HeroSection = () => {
             setEmail("")
             setMobileNumber("")
             setLoanAmount("")
+            setIsModalOpen(false)
         } catch (e) {
             toast({ title: "Submission failed" })
         } finally {
             setSubmitting(false);
         }
     }
+
+    const AdvisorForm = () => (
+        <div className="space-y-4">
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                <Input type="text" placeholder="Enter your name" value={name} onChange={(e) => setName(e.target.value)} />
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                <Input type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
+                <Input type="tel" placeholder="Enter mobile number" value={mobileNumber} onChange={(e) => setMobileNumber(e.target.value)} />
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Loan Amount</label>
+                <Input type="number" placeholder="Enter amount in ₹" value={loanAmount} onChange={(e) => setLoanAmount(e.target.value)} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <Button size="lg" className="w-full" onClick={handleSubmit} disabled={submitting}>
+                    {submitting ? "Submitting..." : "Submit Details"}
+                </Button>
+                <Button size="lg" className="w-full bg-green-600 text-white hover:bg-green-700" onClick={handleWhatsApp}>
+                    Contact on WhatsApp
+                </Button>
+            </div>
+        </div>
+    )
     return (
         <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-16 md:py-20 px-4">
             <div className="max-w-7xl mx-auto">
@@ -109,7 +136,7 @@ const HeroSection = () => {
                             transition={{ duration: 0.6, delay: 0.5 }}
                             className="flex flex-col sm:flex-row gap-3 sm:gap-4"
                         >
-                            <Button size="lg" className="text-lg px-8" onClick={() => router.push('/signup')}>
+                            <Button size="lg" className="text-lg px-8" onClick={() => setIsModalOpen(true)}>
                                 Get Started Free
                                 <ArrowRight className="w-5 h-5 ml-2" />
                             </Button>
@@ -154,39 +181,29 @@ const HeroSection = () => {
                                 <h3 className="text-xl md:text-xl font-bold">Speak to our Advisor </h3>
                                 <Badge className="bg-green-100 text-green-700 text-sm">Get Response in 5 mins</Badge>
                             </div>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                                    <Input type="text" placeholder="Enter your name" value={name} onChange={(e) => setName(e.target.value)} />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                                    <Input type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
-                                    <Input type="tel" placeholder="Enter mobile number" value={mobileNumber} onChange={(e) => setMobileNumber(e.target.value)} />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Loan Amount</label>
-                                    <Input type="number" placeholder="Enter amount in ₹" value={loanAmount} onChange={(e) => setLoanAmount(e.target.value)} />
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    <Button size="lg" className="w-full" onClick={handleSubmit} disabled={submitting}>
-                                        {submitting ? "Submitting..." : "Submit Details"}
-                                    </Button>
-                                    <Button size="lg" className="w-full bg-green-600 text-white hover:bg-green-700" onClick={handleWhatsApp}>
-                                        Contact on WhatsApp
-                                    </Button>
-                                </div>
-                                {/* <p className="text-sm text-gray-500 text-center mt-4">
-                                    We'll get back to you within 5 mins
-                                </p> */}
-                            </div>
+                            <AdvisorForm />
                         </motion.div>
                     </motion.div>
                 </div>
             </div >
+
+            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} maxWidthClassName="max-w-2xl">
+                <div className="p-6">
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-2">
+                            <h3 className="text-2xl font-bold">Speak to our Advisor</h3>
+                            <Badge className="bg-green-100 text-green-700 text-sm">Get Response in 5 mins</Badge>
+                        </div>
+                        <button
+                            onClick={() => setIsModalOpen(false)}
+                            className="text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                            <X className="w-6 h-6" />
+                        </button>
+                    </div>
+                    <AdvisorForm />
+                </div>
+            </Modal>
         </section >
     )
 }
