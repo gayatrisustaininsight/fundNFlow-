@@ -64,28 +64,54 @@ const HeroSection = () => {
     }
 
     const AdvisorForm = () => (
-        <div className="space-y-4 pb-4">
+        <div className="space-y-4 pb-4" onClick={(e) => e.stopPropagation()}>
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                <Input type="text" placeholder="Enter your name" value={name} onChange={(e) => setName(e.target.value)} />
+                <Input
+                    type="text"
+                    placeholder="Enter your name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    autoComplete="name"
+                />
             </div>
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                <Input type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} inputMode="email" />
+                <Input
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    inputMode="email"
+                    autoComplete="email"
+                />
             </div>
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
-                <Input type="tel" placeholder="Enter mobile number" value={mobileNumber} onChange={(e) => setMobileNumber(e.target.value)} inputMode="tel" />
+                <Input
+                    type="tel"
+                    placeholder="Enter mobile number"
+                    value={mobileNumber}
+                    onChange={(e) => setMobileNumber(e.target.value)}
+                    inputMode="tel"
+                    autoComplete="tel"
+                />
             </div>
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Loan Amount</label>
-                <Input type="number" placeholder="Enter amount in ₹" value={loanAmount} onChange={(e) => setLoanAmount(e.target.value)} inputMode="numeric" />
+                <Input
+                    type="number"
+                    placeholder="Enter amount in ₹"
+                    value={loanAmount}
+                    onChange={(e) => setLoanAmount(e.target.value)}
+                    inputMode="numeric"
+                />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
-                <Button size="lg" className="w-full" onClick={handleSubmit} disabled={submitting}>
+                <Button size="lg" className="w-full" onClick={handleSubmit} disabled={submitting} type="button">
                     {submitting ? "Submitting..." : "Submit Details"}
                 </Button>
-                <Button size="lg" className="w-full bg-green-600 text-white hover:bg-green-700" onClick={handleWhatsApp}>
+                <Button size="lg" className="w-full bg-green-600 text-white hover:bg-green-700" onClick={handleWhatsApp} type="button">
                     Contact on WhatsApp
                 </Button>
             </div>
