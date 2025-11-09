@@ -7,9 +7,9 @@ import { ArrowRight } from "lucide-react"
 import { CheckCircle } from "lucide-react"
 import { useMemo, useState, useCallback } from "react"
 import { Input } from "../Input"
-import { useApi } from "@/hooks/useApi"
 import { useToast } from "@/hooks/use-toast"
 import Modal from "../Modal"
+import axios from "axios"
 
 const HeroSection = () => {
     const [name, setName] = useState("")
@@ -18,7 +18,6 @@ const HeroSection = () => {
     const [loanAmount, setLoanAmount] = useState("")
     const [submitting, setSubmitting] = useState(false)
     const [isModalOpen, setIsModalOpen] = useState(false)
-    const { request } = useApi()
     const { toast } = useToast();
     const waPhone = useMemo(() => {
         const configured = process.env.NEXT_PUBLIC_WHATSAPP_PHONE || "+91 98714 21515"
@@ -44,12 +43,19 @@ const HeroSection = () => {
         }
         setSubmitting(true)
         try {
-            await request("post", "/fundnflow/lead", {
+            const baseURL = process.env.NEXT_PUBLIC_NOTIFICATIONS_BASE_URL || "https://greenaiuat.com/api/notifications"
+            await axios.post(`${baseURL}/fundnflow/lead`, {
                 email,
                 name,
                 loanAmount: Number(loanAmount),
                 mobileNumber,
-            }, undefined, { withCredentials: false, baseURL: process.env.NEXT_PUBLIC_NOTIFICATIONS_BASE_URL || "https://greenaiuat.com/api/notifications" })
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                withCredentials: false,
+            })
             toast({ title: "Submitted" })
             setName("")
             setEmail("")
