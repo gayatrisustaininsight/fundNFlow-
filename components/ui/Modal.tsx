@@ -46,12 +46,10 @@ export default function Modal({ isOpen, onClose, children, maxWidthClassName = '
     useEffect(() => {
         if (isOpen && modalContentRef.current) {
             const scrollableContainer = modalContentRef.current.querySelector('[data-scrollable]') as HTMLElement
-            let activeInput: HTMLElement | null = null
 
             const handleFocus = (e: FocusEvent) => {
                 const target = e.target as HTMLElement
                 if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
-                    activeInput = target
                     setTimeout(() => {
                         if (scrollableContainer && target && document.activeElement === target) {
                             const inputRect = target.getBoundingClientRect()
@@ -71,34 +69,30 @@ export default function Modal({ isOpen, onClose, children, maxWidthClassName = '
                 }
             }
 
-            const handleBlur = (e: FocusEvent) => {
+            const preventBlur = (e: FocusEvent) => {
                 const target = e.target as HTMLElement
                 if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
                     const relatedTarget = e.relatedTarget as HTMLElement
-                    if (!relatedTarget || (!relatedTarget.closest('[data-scrollable]') && relatedTarget.tagName !== 'INPUT' && relatedTarget.tagName !== 'TEXTAREA')) {
+                    const isMovingToInput = relatedTarget && (relatedTarget.tagName === 'INPUT' || relatedTarget.tagName === 'TEXTAREA')
+                    const isMovingToButton = relatedTarget && relatedTarget.closest('button')
+
+                    if (!isMovingToInput && !isMovingToButton) {
                         setTimeout(() => {
-                            if (activeInput && document.activeElement !== activeInput && !document.activeElement?.closest('button')) {
-                                activeInput.focus()
+                            if (target && document.activeElement !== target && !document.activeElement?.closest('button')) {
+                                target.focus()
                             }
                         }, 10)
                     }
                 }
             }
 
-            const handleClick = (e: MouseEvent) => {
+            const handleTouchStart = (e: TouchEvent) => {
                 const target = e.target as HTMLElement
                 if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.closest('input, textarea')) {
                     e.stopPropagation()
                 }
             }
 
-            const handleTouchStart = (e: TouchEvent) => {
-                const target = e.target as HTMLElement
-                if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.closest('input, textarea, button')) {
-                    e.stopPropagation()
-                    return
-                }
-            }
             const handleTouchMove = (e: TouchEvent) => {
                 const target = e.target as HTMLElement
                 if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.closest('input, textarea')) {
@@ -111,17 +105,14 @@ export default function Modal({ isOpen, onClose, children, maxWidthClassName = '
             }
 
             document.addEventListener('focusin', handleFocus, true)
-            document.addEventListener('focusout', handleBlur, true)
-            document.addEventListener('click', handleClick, true)
+            document.addEventListener('focusout', preventBlur, true)
             document.addEventListener('touchstart', handleTouchStart, { passive: true, capture: true })
             document.addEventListener('touchmove', handleTouchMove, { passive: false })
             return () => {
                 document.removeEventListener('focusin', handleFocus, true)
-                document.removeEventListener('focusout', handleBlur, true)
-                document.removeEventListener('click', handleClick, true)
+                document.removeEventListener('focusout', preventBlur, true)
                 document.removeEventListener('touchstart', handleTouchStart, true)
                 document.removeEventListener('touchmove', handleTouchMove)
-                activeInput = null
             }
         }
     }, [isOpen])
@@ -130,7 +121,7 @@ export default function Modal({ isOpen, onClose, children, maxWidthClassName = '
 
     const handleBackdropClick = (e: React.MouseEvent) => {
         const target = e.target as HTMLElement
-        if (target === e.currentTarget && !target.closest('input, textarea, button')) {
+        if (target === e.currentTarget && !target.closest('input, textarea, button, label')) {
             onClose()
         }
     }
@@ -139,6 +130,12 @@ export default function Modal({ isOpen, onClose, children, maxWidthClassName = '
         <div
             className="fixed inset-0 z-50 flex items-start md:items-center justify-center p-0 md:p-4"
             onClick={handleBackdropClick}
+            onTouchStart={(e) => {
+                const target = e.target as HTMLElement
+                if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.closest('input, textarea, label')) {
+                    e.stopPropagation()
+                }
+            }}
             style={{ touchAction: 'none' }}
         >
             <div className="absolute inset-0 bg-black/50" />
@@ -147,7 +144,13 @@ export default function Modal({ isOpen, onClose, children, maxWidthClassName = '
                 className={`relative w-full ${maxWidthClassName} bg-white rounded-none md:rounded-xl shadow-xl border border-gray-200 min-h-screen md:min-h-0 my-0 md:my-auto`}
                 onClick={(e) => {
                     const target = e.target as HTMLElement
-                    if (!target.closest('input, textarea, button')) {
+                    if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA' && !target.closest('input, textarea, button, label')) {
+                        e.stopPropagation()
+                    }
+                }}
+                onTouchStart={(e) => {
+                    const target = e.target as HTMLElement
+                    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.closest('input, textarea, label')) {
                         e.stopPropagation()
                     }
                 }}

@@ -64,7 +64,11 @@ const HeroSection = () => {
     }
 
     const AdvisorForm = () => (
-        <div className="space-y-4 pb-4" onClick={(e) => e.stopPropagation()}>
+        <div
+            className="space-y-4 pb-4"
+            onClick={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+        >
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
                 <Input
