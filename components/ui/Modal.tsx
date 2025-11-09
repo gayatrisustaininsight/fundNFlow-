@@ -70,6 +70,10 @@ export default function Modal({ isOpen, onClose, children, maxWidthClassName = '
             }
 
             const preventBlur = (e: FocusEvent) => {
+                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+                if (isMobile) {
+                    return
+                }
                 const target = e.target as HTMLElement
                 if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
                     const relatedTarget = e.relatedTarget as HTMLElement

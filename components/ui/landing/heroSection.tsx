@@ -5,7 +5,7 @@ import { Sparkles, X } from "lucide-react"
 import { Button } from "../Button"
 import { ArrowRight } from "lucide-react"
 import { CheckCircle } from "lucide-react"
-import { useMemo, useState } from "react"
+import { useMemo, useState, useCallback } from "react"
 import { Input } from "../Input"
 import { useApi } from "@/hooks/useApi"
 import { useToast } from "@/hooks/use-toast"
@@ -63,8 +63,18 @@ const HeroSection = () => {
         }
     }
 
-    const AdvisorForm = () => (
-        <div
+    const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            e.preventDefault()
+        }
+    }, [])
+
+    const AdvisorForm = useMemo(() => (
+        <form
+            onSubmit={(e) => {
+                e.preventDefault()
+                handleSubmit()
+            }}
             className="space-y-4 pb-4"
             onClick={(e) => e.stopPropagation()}
             onTouchStart={(e) => e.stopPropagation()}
@@ -76,6 +86,7 @@ const HeroSection = () => {
                     placeholder="Enter your name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                    onKeyDown={handleKeyDown}
                     autoComplete="name"
                 />
             </div>
@@ -86,6 +97,7 @@ const HeroSection = () => {
                     placeholder="you@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    onKeyDown={handleKeyDown}
                     inputMode="email"
                     autoComplete="email"
                 />
@@ -97,6 +109,7 @@ const HeroSection = () => {
                     placeholder="Enter mobile number"
                     value={mobileNumber}
                     onChange={(e) => setMobileNumber(e.target.value)}
+                    onKeyDown={handleKeyDown}
                     inputMode="tel"
                     autoComplete="tel"
                 />
@@ -108,6 +121,7 @@ const HeroSection = () => {
                     placeholder="Enter amount in ₹"
                     value={loanAmount}
                     onChange={(e) => setLoanAmount(e.target.value)}
+                    onKeyDown={handleKeyDown}
                     inputMode="numeric"
                 />
             </div>
@@ -119,8 +133,8 @@ const HeroSection = () => {
                     Contact on WhatsApp
                 </Button>
             </div>
-        </div>
-    )
+        </form>
+    ), [name, email, mobileNumber, loanAmount, submitting, handleSubmit, handleWhatsApp, handleKeyDown])
     return (
         <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-16 md:py-20 px-4">
             <div className="max-w-7xl mx-auto">
@@ -211,7 +225,7 @@ const HeroSection = () => {
                                 <h3 className="text-xl md:text-xl font-bold">Speak to our Advisor </h3>
                                 <Badge className="bg-green-100 text-green-700 text-sm">Get Response in 5 mins</Badge>
                             </div>
-                            <AdvisorForm />
+                            {AdvisorForm}
                         </motion.div>
                     </motion.div>
                 </div>
@@ -231,7 +245,7 @@ const HeroSection = () => {
                             <X className="w-6 h-6" />
                         </button>
                     </div>
-                    <AdvisorForm />
+                    {AdvisorForm}
                 </div>
             </Modal>
         </section >
