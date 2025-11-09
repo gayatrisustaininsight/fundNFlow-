@@ -64,24 +64,24 @@ const HeroSection = () => {
     }
 
     const AdvisorForm = () => (
-        <div className="space-y-4">
+        <div className="space-y-4 pb-4">
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
                 <Input type="text" placeholder="Enter your name" value={name} onChange={(e) => setName(e.target.value)} />
             </div>
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                <Input type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <Input type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} inputMode="email" />
             </div>
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
-                <Input type="tel" placeholder="Enter mobile number" value={mobileNumber} onChange={(e) => setMobileNumber(e.target.value)} />
+                <Input type="tel" placeholder="Enter mobile number" value={mobileNumber} onChange={(e) => setMobileNumber(e.target.value)} inputMode="tel" />
             </div>
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Loan Amount</label>
-                <Input type="number" placeholder="Enter amount in ₹" value={loanAmount} onChange={(e) => setLoanAmount(e.target.value)} />
+                <Input type="number" placeholder="Enter amount in ₹" value={loanAmount} onChange={(e) => setLoanAmount(e.target.value)} inputMode="numeric" />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
                 <Button size="lg" className="w-full" onClick={handleSubmit} disabled={submitting}>
                     {submitting ? "Submitting..." : "Submit Details"}
                 </Button>
@@ -188,15 +188,15 @@ const HeroSection = () => {
             </div >
 
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} maxWidthClassName="max-w-2xl">
-                <div className="p-6">
-                    <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-2">
-                            <h3 className="text-2xl font-bold">Speak to our Advisor</h3>
-                            <Badge className="bg-green-100 text-green-700 text-sm">Get Response in 5 mins</Badge>
+                <div className="p-4 md:p-6 pb-8 md:pb-6">
+                    <div className="flex items-start md:items-center justify-between mb-4 md:mb-6 gap-2">
+                        <div className="flex flex-col md:flex-row md:items-center gap-2 flex-1">
+                            <h3 className="text-xl md:text-2xl font-bold">Speak to our Advisor</h3>
+                            <Badge className="bg-green-100 text-green-700 text-sm w-fit">Get Response in 5 mins</Badge>
                         </div>
                         <button
                             onClick={() => setIsModalOpen(false)}
-                            className="text-gray-400 hover:text-gray-600 transition-colors"
+                            className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0 mt-1 md:mt-0"
                         >
                             <X className="w-6 h-6" />
                         </button>
