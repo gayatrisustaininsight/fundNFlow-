@@ -44,7 +44,7 @@ const HeroSection = () => {
         setSubmitting(true)
         try {
             const baseURL = process.env.NEXT_PUBLIC_BACKEND_URL
-            await axios.post(`${baseURL}/api/notifications/lead"`, {
+            await axios.post(`${baseURL}/api/notifications/lead`, {
                 email,
                 name,
                 loanAmount: Number(loanAmount),
