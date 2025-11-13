@@ -43,8 +43,8 @@ const HeroSection = () => {
         }
         setSubmitting(true)
         try {
-            const baseURL = process.env.NEXT_PUBLIC_NOTIFICATIONS_BASE_URL || "https://greenaiuat.com/api/notifications"
-            await axios.post(`${baseURL}/fundnflow/lead`, {
+            const baseURL = process.env.NEXT_PUBLIC_BACKEND_URL
+            await axios.post(`${baseURL}/api/notifications/lead"`, {
                 email,
                 name,
                 loanAmount: Number(loanAmount),
