@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Upload, CheckCircle, FileText, X, File, TrendingUp, Building2, Shield, Info, AlertCircle, Loader2 } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
 import { useAuthStore } from '@/store/authStore'
@@ -14,7 +14,7 @@ interface Document {
     id: string
     name: string
     documentId: string
-    type: 'gst_return' | 'bank_statement' | 'financial'
+    type: 'gst_return' | 'bank_statement' | 'financial_statement'
     status: 'uploading' | 'uploaded' | 'processing' | 'processed' | 'failed'
     uploadProgress?: number
     file?: File
@@ -23,22 +23,22 @@ interface Document {
     uploadedAt?: string
 }
 
-type TabType = 'bank_statement' | 'gst_return' | 'financial'
+type TabType = 'bank_statement' | 'gst_return' | 'financial_statement'
 
 const tabs = [
     { id: 'bank_statement' as TabType, label: 'Bank Statements', icon: TrendingUp, required: '12 months' },
     { id: 'gst_return' as TabType, label: 'GST Returns', icon: FileText, required: 'Latest returns' },
-    { id: 'financial' as TabType, label: 'Financial Statements', icon: Building2, required: 'P&L, Balance Sheet' },
+    { id: 'financial_statement' as TabType, label: 'Financial Statements', icon: Building2, required: 'P&L, Balance Sheet' },
 ]
 
 export default function UploadScreen() {
-    const { setCurrentStep } = useAppStore()
-    const { user } = useAuthStore()
-    const { uploadDocument } = useDocumentUpload()
-    const { getDocumentList } = useDocumentList()
-    const { deleteDocument } = useDocumentDelete()
-    const { extractData } = useAIExtraction()
-    const { toast } = useToast()
+    const { setCurrentStep } = useAppStore();
+    const { user } = useAuthStore();
+    const { uploadDocument } = useDocumentUpload();
+    const { getDocumentList } = useDocumentList();
+    const { deleteDocument } = useDocumentDelete();
+    const { extractData } = useAIExtraction();
+    const { toast } = useToast();
     const [isExtracting, setIsExtracting] = useState(false)
     const [documents, setDocuments] = useState<Document[]>([])
     const [documentList, setDocumentList] = useState<DocumentListItem[]>([])
@@ -48,24 +48,26 @@ export default function UploadScreen() {
     const [deleteModalOpen, setDeleteModalOpen] = useState(false)
     const [documentToDelete, setDocumentToDelete] = useState<Document | null>(null)
     const [extractionJobId, setExtractionJobId] = useState<string | null>(null)
+    const [selectedDocIds, setSelectedDocIds] = useState<Set<string>>(new Set())
+    const [selectedDocsMap, setSelectedDocsMap] = useState<Record<string, DocumentListItem>>({})
+    const prevActiveTabRef = useRef<TabType | null>(null)
+    const prevUserRef = useRef<string | null>(null)
 
-    // Fetch document list from API
     const fetchDocumentList = async () => {
         if (!user) return
 
         setLoadingDocuments(true)
         try {
             console.log('📋 Fetching document list on page load')
-            const response = await getDocumentList({ page: 1, limit: 50 })
+            const response = await getDocumentList({ page: 1, limit: 50, docType: activeTab })
 
             console.log('📋 Document list fetched:', response.data.documents)
             setDocumentList(response.data.documents)
 
-            // Convert API documents to local document format for display
             const localDocs: Document[] = response.data.documents.map((doc: DocumentListItem) => ({
                 id: doc.id,
                 name: doc.originalName,
-                type: 'bank_statement' as TabType, // Default type, you can categorize based on filename
+                type: activeTab,
                 status: 'uploaded' as const,
                 url: doc.url,
                 documentId: doc.documentId,
@@ -86,13 +88,23 @@ export default function UploadScreen() {
         }
     }
 
-    // Load documents on page load and when user changes
     useEffect(() => {
-        if (user) {
-            console.log('🔄 User authenticated, loading documents')
+        if (!user) {
+            prevUserRef.current = null
+            return
+        }
+
+        const userId = user.id || null
+        const userChanged = prevUserRef.current !== userId
+        const tabChanged = prevActiveTabRef.current !== null && prevActiveTabRef.current !== activeTab
+        const isInitialFetch = prevActiveTabRef.current === null
+
+        if (isInitialFetch || userChanged || tabChanged) {
+            prevUserRef.current = userId
+            prevActiveTabRef.current = activeTab
             fetchDocumentList()
         }
-    }, [user])
+    }, [user, activeTab])
 
     const validateFile = (file: File): string | null => {
         // Check file size (10MB limit)
@@ -158,6 +170,7 @@ export default function UploadScreen() {
                 await uploadDocument({
                     file,
                     uploadedBy: user.id,
+                    docType: activeTab,
                     filename: file.name
                 })
 
@@ -291,10 +304,10 @@ export default function UploadScreen() {
             return
         }
 
-        if (documentList.length === 0) {
+        if (Object.keys(selectedDocsMap).length === 0) {
             toast({
                 title: 'No Documents',
-                description: 'Please upload at least one document before continuing',
+                description: 'Please select at least one document before continuing',
                 variant: 'destructive'
             })
             return
@@ -302,9 +315,9 @@ export default function UploadScreen() {
 
         setIsExtracting(true)
         try {
-            console.log('🚀 Starting AI extraction with documents:', documentList)
+            console.log('🚀 Starting AI extraction with documents:', Object.values(selectedDocsMap))
 
-            const files = buildFilesObject(documentList)
+            const files = buildFilesObject(Object.values(selectedDocsMap))
             console.log('📄 Files object for extraction:', files)
 
             if (Object.keys(files).length === 0) {
@@ -395,10 +408,14 @@ export default function UploadScreen() {
                                 <div className="text-2xl font-bold text-gray-900">{uploadedDocs}/{totalDocs}</div>
                                 <div className="text-xs text-gray-500">Uploaded</div>
                             </div>
+                            <div className="text-right">
+                                <div className="text-2xl font-bold text-blue-600">{Object.keys(selectedDocsMap).length}</div>
+                                <div className="text-xs text-blue-600">Selected</div>
+                            </div>
                             <button
                                 onClick={fetchDocumentList}
                                 disabled={loadingDocuments}
-                                className="px-4 py-2 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                                className="px-4 py-2 bg-gray-600 cursor-pointer text-white rounded-lg font-medium hover:bg-gray-700 transition-colors disabled:opacity-50 flex items-center gap-2"
                             >
                                 {loadingDocuments ? (
                                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -411,7 +428,7 @@ export default function UploadScreen() {
                                 <button
                                     onClick={handleContinue}
                                     disabled={isExtracting}
-                                    className="px-6 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                    className="px-6 py-2.5 bg-blue-600 cursor-pointer text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                 >
                                     {isExtracting ? (
                                         <>
@@ -600,6 +617,27 @@ export default function UploadScreen() {
                                                     )}
                                                 </div>
                                                 <div className="flex items-center gap-2">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={Boolean(selectedDocIds.has(doc.id))}
+                                                        onChange={(e) => {
+                                                            const nextIds = new Set(selectedDocIds)
+                                                            const found = documentList.find(d => d.id === doc.id)
+                                                            if (e.target.checked) {
+                                                                nextIds.add(doc.id)
+                                                                if (found) setSelectedDocsMap(prev => ({ ...prev, [doc.id]: found }))
+                                                            } else {
+                                                                nextIds.delete(doc.id)
+                                                                setSelectedDocsMap(prev => {
+                                                                    const c = { ...prev }
+                                                                    delete c[doc.id]
+                                                                    return c
+                                                                })
+                                                            }
+                                                            setSelectedDocIds(nextIds)
+                                                        }}
+                                                        className="w-4 h-4 border-gray-300 rounded"
+                                                    />
                                                     {doc.status === 'uploading' && (
                                                         <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />
                                                     )}

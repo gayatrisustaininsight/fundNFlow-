@@ -1,28 +1,24 @@
 "use client"
 import { motion } from "framer-motion"
 import { Badge } from "../badge"
-import { Sparkles } from "lucide-react"
+import { Sparkles, X } from "lucide-react"
 import { Button } from "../Button"
 import { ArrowRight } from "lucide-react"
 import { CheckCircle } from "lucide-react"
-import { Building2 } from "lucide-react"
-import { Progress } from "../Progress"
-import { useMemo, useState } from "react"
+import { useMemo, useState, useCallback } from "react"
 import { Input } from "../Input"
-import { useApi } from "@/hooks/useApi"
 import { useToast } from "@/hooks/use-toast"
-import { useRouter } from "next/navigation"
+import Modal from "../Modal"
+import axios from "axios"
 
 const HeroSection = () => {
-    const [currentPage, setCurrentPage] = useState('landing')
     const [name, setName] = useState("")
     const [email, setEmail] = useState("")
     const [mobileNumber, setMobileNumber] = useState("")
     const [loanAmount, setLoanAmount] = useState("")
     const [submitting, setSubmitting] = useState(false)
-    const { request } = useApi()
+    const [isModalOpen, setIsModalOpen] = useState(false)
     const { toast } = useToast();
-    const router = useRouter();
     const waPhone = useMemo(() => {
         const configured = process.env.NEXT_PUBLIC_WHATSAPP_PHONE || "+91 98714 21515"
         const digits = configured.replace(/[^0-9]/g, "")
@@ -47,23 +43,104 @@ const HeroSection = () => {
         }
         setSubmitting(true)
         try {
-            await request("post", "/fundnflow/lead", {
+            const baseURL = process.env.NEXT_PUBLIC_BACKEND_URL
+            await axios.post(`${baseURL}/api/notifications/lead`, {
                 email,
                 name,
                 loanAmount: Number(loanAmount),
                 mobileNumber,
-            }, undefined, { withCredentials: false, baseURL: process.env.NEXT_PUBLIC_NOTIFICATIONS_BASE_URL || "https://greenaiuat.com/api/notifications" })
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                withCredentials: false,
+            })
             toast({ title: "Submitted" })
             setName("")
             setEmail("")
             setMobileNumber("")
             setLoanAmount("")
+            setIsModalOpen(false)
         } catch (e) {
             toast({ title: "Submission failed" })
         } finally {
             setSubmitting(false);
         }
     }
+
+    const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            e.preventDefault()
+        }
+    }, [])
+
+    const AdvisorForm = useMemo(() => (
+        <form
+            onSubmit={(e) => {
+                e.preventDefault()
+                handleSubmit()
+            }}
+            className="space-y-4 pb-4"
+            onClick={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+        >
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                <Input
+                    type="text"
+                    placeholder="Enter your name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    autoComplete="name"
+                />
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                <Input
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    inputMode="email"
+                    autoComplete="email"
+                />
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
+                <Input
+                    type="tel"
+                    placeholder="Enter mobile number"
+                    value={mobileNumber}
+                    onChange={(e) => setMobileNumber(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    inputMode="tel"
+                    autoComplete="tel"
+                />
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Loan Amount</label>
+                <Input
+                    type="number"
+                    placeholder="Enter amount in ₹"
+                    value={loanAmount}
+                    onChange={(e) => setLoanAmount(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    inputMode="numeric"
+                />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+                <Button size="lg" className="w-full" onClick={handleSubmit} disabled={submitting} type="button">
+                    {submitting ? "Submitting..." : "Submit Details"}
+                </Button>
+                <Button size="lg" className="w-full bg-green-600 text-white hover:bg-green-700" onClick={handleWhatsApp} type="button">
+                    Contact on WhatsApp
+                </Button>
+            </div>
+        </form>
+    ), [name, email, mobileNumber, loanAmount, submitting, handleSubmit, handleWhatsApp, handleKeyDown])
     return (
         <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-16 md:py-20 px-4">
             <div className="max-w-7xl mx-auto">
@@ -109,7 +186,7 @@ const HeroSection = () => {
                             transition={{ duration: 0.6, delay: 0.5 }}
                             className="flex flex-col sm:flex-row gap-3 sm:gap-4"
                         >
-                            <Button size="lg" className="text-lg px-8" onClick={() => router.push('/signup')}>
+                            <Button size="lg" className="text-lg px-8" onClick={() => setIsModalOpen(true)}>
                                 Get Started Free
                                 <ArrowRight className="w-5 h-5 ml-2" />
                             </Button>
@@ -154,39 +231,29 @@ const HeroSection = () => {
                                 <h3 className="text-xl md:text-xl font-bold">Speak to our Advisor </h3>
                                 <Badge className="bg-green-100 text-green-700 text-sm">Get Response in 5 mins</Badge>
                             </div>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                                    <Input type="text" placeholder="Enter your name" value={name} onChange={(e) => setName(e.target.value)} />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                                    <Input type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
-                                    <Input type="tel" placeholder="Enter mobile number" value={mobileNumber} onChange={(e) => setMobileNumber(e.target.value)} />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Loan Amount</label>
-                                    <Input type="number" placeholder="Enter amount in ₹" value={loanAmount} onChange={(e) => setLoanAmount(e.target.value)} />
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    <Button size="lg" className="w-full" onClick={handleSubmit} disabled={submitting}>
-                                        {submitting ? "Submitting..." : "Submit Details"}
-                                    </Button>
-                                    <Button size="lg" className="w-full bg-green-600 text-white hover:bg-green-700" onClick={handleWhatsApp}>
-                                        Contact on WhatsApp
-                                    </Button>
-                                </div>
-                                {/* <p className="text-sm text-gray-500 text-center mt-4">
-                                    We'll get back to you within 5 mins
-                                </p> */}
-                            </div>
+                            {AdvisorForm}
                         </motion.div>
                     </motion.div>
                 </div>
             </div >
+
+            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} maxWidthClassName="max-w-2xl">
+                <div className="p-4 md:p-6 pb-8 md:pb-6">
+                    <div className="flex items-start md:items-center justify-between mb-4 md:mb-6 gap-2">
+                        <div className="flex flex-col md:flex-row md:items-center gap-2 flex-1">
+                            <h3 className="text-xl md:text-2xl font-bold">Speak to our Advisor</h3>
+                            <Badge className="bg-green-100 text-green-700 text-sm w-fit">Get Response in 5 mins</Badge>
+                        </div>
+                        <button
+                            onClick={() => setIsModalOpen(false)}
+                            className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0 mt-1 md:mt-0"
+                        >
+                            <X className="w-6 h-6" />
+                        </button>
+                    </div>
+                    {AdvisorForm}
+                </div>
+            </Modal>
         </section >
     )
 }

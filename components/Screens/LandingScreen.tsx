@@ -35,7 +35,7 @@ const LandingPage = () => {
                     <div className="grid md:grid-cols-4 gap-8 text-center">
                         {[
                             { value: '50+', label: 'Lending Partners' },
-                            { value: '₹500Cr+', label: 'Loans Disbursed' },
+                            { value: '₹100Cr+', label: 'Loans Disbursed' },
                             { value: '10k+', label: 'SMEs Funded' },
                             { value: '48hrs', label: 'Avg. Approval Time' }
                         ].map((stat, index) => (

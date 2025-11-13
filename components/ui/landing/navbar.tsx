@@ -39,10 +39,8 @@ const Navigation = () => {
                         <a href="#testimonials" className="text-gray-700 hover:text-blue-600 transition-colors">Testimonials</a>
 
                     </div>
-                    <div className="flex items-center space-x-4">
-                        <Button variant="outline" onClick={() => router.push('/login')}>Login</Button>
-                        <Button onClick={() => router.push('/signup')}>Get Started</Button>
-                    </div>
+
+
 
                     <div className="md:hidden">
                         <Button variant="ghost" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -64,8 +62,10 @@ const Navigation = () => {
                                 <a href="#how-it-works" className="text-gray-700 hover:text-blue-600">How It Works</a>
                                 <a href="#who-we-serve" className="text-gray-700 hover:text-blue-600">Who We Serve</a>
                                 <a href="#testimonials" className="text-gray-700 hover:text-blue-600">Testimonials</a>
-                                <Button variant="outline" onClick={() => router.push('/login')} className="w-full">Login</Button>
+                                {/* <Button variant="outline" onClick={() => router.push('/login')} className="w-full">Login</Button>
                                 <Button onClick={() => router.push('/signup')} className="w-full">Get Started</Button>
+                            */}
+
                             </div>
                         </motion.div>
                     )}

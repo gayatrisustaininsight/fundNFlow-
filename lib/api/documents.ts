@@ -17,6 +17,7 @@ export interface DocumentUploadResponse {
 export interface DocumentListParams {
   page?: number
   limit?: number
+  docType?: string
 }
 
 export interface DocumentListItem {
@@ -51,7 +52,14 @@ export interface DocumentListResponse {
 export interface DocumentUploadParams {
   file: File
   uploadedBy: string
+  docType: string
   filename?: string
+}
+
+export interface DocumentUploadMultipleParams {
+  files: File[]
+  uploadedBy: string
+  docType: string
 }
 
 export function useDocumentUpload() {
@@ -61,6 +69,7 @@ export function useDocumentUpload() {
     const formData = new FormData()
     formData.append('file', params.file)
     formData.append('uploadedBy', params.uploadedBy)
+    formData.append('docType', params.docType)
     
     if (params.filename) {
       formData.append('filename', params.filename)
@@ -114,19 +123,32 @@ export function useDocumentUpload() {
     }
   }
 
-  return { uploadDocument }
+  const uploadDocumentsMultiple = async (params: DocumentUploadMultipleParams): Promise<any> => {
+    const formData = new FormData()
+    params.files.forEach((f) => formData.append('files', f))
+    formData.append('uploadedBy', params.uploadedBy)
+    formData.append('docType', params.docType)
+    try {
+      const response = await api.post('/documents/upload-multiple', formData)
+      return response.data
+    } catch (error) {
+      throw error
+    }
+  }
+
+  return { uploadDocument, uploadDocumentsMultiple }
 }
 
 export function useDocumentList() {
   const getDocumentList = async (params: DocumentListParams = {}): Promise<DocumentListResponse> => {
-    const { page = 1, limit = 10 } = params
+    const { page = 1, limit = 10, docType } = params
     
     console.log('useDocumentList: Fetching documents with params:', { page, limit })
     
     try {
       // Use the same backend port (5000) for document list API
       const response = await api.get('/documents', {
-        params: { page, limit }
+        params: { page, limit, ...(docType ? { docType } : {}) }
       })
       
       console.log('useDocumentList: Raw response received:', response.data)
@@ -309,4 +331,36 @@ export function useAIJobs() {
   }
 
   return { getJobStatus }
+}
+
+export interface AIJobsHistoryParams {
+  userId: string
+  page?: number
+  limit?: number
+}
+
+export interface AIJobsHistoryResponse {
+  success: boolean
+  message?: string
+  data: {
+    jobs: any[]
+    pagination: {
+      page: number
+      limit: number
+      total: number
+      pages: number
+      hasNextPage: boolean
+      hasPrevPage: boolean
+    }
+  }
+}
+
+export function useAIJobsHistory() {
+  const getAIJobsHistory = async (params: AIJobsHistoryParams): Promise<AIJobsHistoryResponse> => {
+    const { userId, page = 1, limit = 20 } = params
+    const response = await api.get('/ai/jobs/history', { params: { userId, page, limit } })
+    return response.data
+  }
+
+  return { getAIJobsHistory }
 }

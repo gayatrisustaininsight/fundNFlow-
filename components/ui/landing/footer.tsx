@@ -23,7 +23,7 @@ const Footer = () => {
                             <li><a href="#testimonials" className="hover:text-white">Testimonials</a></li>
                         </ul>
                     </div>
-                    <div>
+                    {/* <div>
                         <h4 className="font-bold text-white mb-4">Company</h4>
                         <ul className="space-y-2 text-sm">
                             <li><a href="#" className="hover:text-white">About Us</a></li>
@@ -31,8 +31,8 @@ const Footer = () => {
                             <li><a href="#" className="hover:text-white">Blog</a></li>
                             <li><a href="#" className="hover:text-white">Contact</a></li>
                         </ul>
-                    </div>
-                    <div>
+                    </div> */}
+                    {/* <div>
                         <h4 className="font-bold text-white mb-4">Legal</h4>
                         <ul className="space-y-2 text-sm">
                             <li><a href="#" className="hover:text-white">Privacy Policy</a></li>
@@ -40,7 +40,7 @@ const Footer = () => {
                             <li><a href="#" className="hover:text-white">Security</a></li>
                             <li><a href="#" className="hover:text-white">Compliance</a></li>
                         </ul>
-                    </div>
+                    </div> */}
                 </div>
                 <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm">
                     <p>© 2024 FundnFlow. All rights reserved. | RBI-AA Compliant Platform</p>
