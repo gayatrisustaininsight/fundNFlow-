@@ -43,18 +43,12 @@ const HeroSection = () => {
         }
         setSubmitting(true)
         try {
-            const baseURL = process.env.NEXT_PUBLIC_BACKEND_URL
-            await axios.post(`${baseURL}/api/notifications/lead`, {
+            const baseURL = process.env.NEXT_PUBLIC_BACKEND_URL + "/api/notifications/lead"
+            await axios.post(baseURL, {
                 email,
                 name,
-                loanAmount: Number(loanAmount),
-                mobileNumber,
-            }, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                withCredentials: false,
+                loan_amount: Number(loanAmount),
+                mobile_number: mobileNumber,
             })
             toast({ title: "Submitted" })
             setName("")
