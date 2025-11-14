@@ -5,7 +5,7 @@ import { Sparkles, X } from "lucide-react"
 import { Button } from "../Button"
 import { ArrowRight } from "lucide-react"
 import { CheckCircle } from "lucide-react"
-import { useMemo, useState, useCallback } from "react"
+import { useMemo, useState, useCallback, useRef, useEffect } from "react"
 import { Input } from "../Input"
 import { useToast } from "@/hooks/use-toast"
 import Modal from "../Modal"
@@ -18,6 +18,8 @@ const HeroSection = () => {
     const [loanAmount, setLoanAmount] = useState("")
     const [submitting, setSubmitting] = useState(false)
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [isVideoModalOpen, setIsVideoModalOpen] = useState(false)
+    const videoRef = useRef<HTMLVideoElement>(null)
     const { toast } = useToast();
     const waPhone = useMemo(() => {
         const configured = process.env.NEXT_PUBLIC_WHATSAPP_PHONE || "+91 98714 21515"
@@ -68,6 +70,47 @@ const HeroSection = () => {
             e.preventDefault()
         }
     }, [])
+
+    useEffect(() => {
+        if (isVideoModalOpen && videoRef.current) {
+            // First, verify the video file is accessible
+            const videoUrl = '/demo-video.mp4'
+            fetch(videoUrl, { method: 'HEAD' })
+                .then((response) => {
+                    if (!response.ok) {
+                        console.error('Video file not found or not accessible:', response.status, response.statusText)
+                        toast({ title: `Video file not accessible (${response.status}). Please check the file exists.` })
+                        return
+                    }
+                    // Reset video to beginning
+                    if (videoRef.current) {
+                        videoRef.current.currentTime = 0
+                        // Load the video source
+                        videoRef.current.load()
+                        // Try to play after a short delay to ensure source is loaded
+                        setTimeout(() => {
+                            if (videoRef.current) {
+                                const playPromise = videoRef.current.play()
+                                if (playPromise !== undefined) {
+                                    playPromise.catch((error) => {
+                                        console.error('Error playing video:', error)
+                                        // If autoplay fails, user can still click play
+                                    })
+                                }
+                            }
+                        }, 100)
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error checking video file:', error)
+                    toast({ title: "Error accessing video file. Please check if the file exists at /demo-video.mp4" })
+                })
+        } else if (!isVideoModalOpen && videoRef.current) {
+            // Pause video when modal closes
+            videoRef.current.pause()
+            videoRef.current.currentTime = 0
+        }
+    }, [isVideoModalOpen, toast])
 
     const AdvisorForm = useMemo(() => (
         <form
@@ -184,7 +227,7 @@ const HeroSection = () => {
                                 Get Started Free
                                 <ArrowRight className="w-5 h-5 ml-2" />
                             </Button>
-                            <Button size="lg" variant="outline" className="text-lg px-8">
+                            <Button size="lg" variant="outline" className="text-lg px-8" onClick={() => setIsVideoModalOpen(true)}>
                                 Watch Demo
                             </Button>
                         </motion.div>
@@ -246,6 +289,49 @@ const HeroSection = () => {
                         </button>
                     </div>
                     {AdvisorForm}
+                </div>
+            </Modal>
+
+            <Modal isOpen={isVideoModalOpen} onClose={() => setIsVideoModalOpen(false)} maxWidthClassName="max-w-4xl">
+                <div className="p-4 md:p-6">
+                    <div className="flex items-center justify-between mb-4 md:mb-6">
+                        <h3 className="text-xl md:text-2xl font-bold">Product Demo</h3>
+                        <button
+                            onClick={() => setIsVideoModalOpen(false)}
+                            className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+                        >
+                            <X className="w-6 h-6" />
+                        </button>
+                    </div>
+                    <div className="relative w-full bg-black rounded-lg overflow-hidden" style={{ aspectRatio: '16/9' }}>
+                        <video
+                            ref={videoRef}
+                            className="w-full h-full rounded-lg"
+                            controls
+                            autoPlay
+                            muted
+                            playsInline
+                            preload="auto"
+                            style={{ objectFit: 'contain', backgroundColor: '#000' }}
+                            onError={(e) => {
+                                console.error('Video error:', e)
+                                const video = e.currentTarget
+                                console.error('Video error details:', {
+                                    error: video.error,
+                                    networkState: video.networkState,
+                                    readyState: video.readyState,
+                                    src: video.currentSrc
+                                })
+                                toast({ title: "Error loading video. Please check if the file exists at /demo-video.mp4" })
+                            }}
+                            onLoadedData={() => {
+                                console.log('Video loaded successfully')
+                            }}
+                        >
+                            <source src="/demo-video.mp4" type="video/mp4" />
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
                 </div>
             </Modal>
         </section >

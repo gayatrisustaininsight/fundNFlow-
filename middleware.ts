@@ -11,6 +11,8 @@ const PUBLIC_PATHS: RegExp[] = [
   /^\/assets(?:\/.*)?$/,
   /^\/_next(?:\/.*)?$/,
   /^\/images(?:\/.*)?$/,
+  /^\/demo-video\.mp4$/,
+  /^\/.*\.(mp4|webm|ogg|mov|avi|mp3|wav|pdf|jpg|jpeg|png|gif|svg|ico)$/,
 ]
 
 // Routes that should not be accessible when already authenticated
@@ -30,6 +32,12 @@ function isAuthPage(pathname: string): boolean {
 export function middleware(request: NextRequest) {
   const { nextUrl, cookies } = request
   const pathname = nextUrl.pathname
+
+  // Early return for static files (videos, images, etc.)
+  const staticFileExtensions = /\.(mp4|webm|ogg|mov|avi|mp3|wav|pdf|jpg|jpeg|png|gif|svg|ico|woff|woff2|ttf|eot|css|js)$/i
+  if (staticFileExtensions.test(pathname)) {
+    return NextResponse.next()
+  }
 
   const token = cookies.get('auth_token')?.value
   const isValidToken = (() => {
@@ -85,8 +93,10 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Protect everything except the public assets and api; public paths handled in code above
-    '/((?!_next|assets|images|favicon.ico).*)',
+    // Protect everything except the public assets and api
+    // Static files are handled by early return in middleware function
+    // Using simple pattern that excludes _next and common static directories
+    '/((?!_next|assets|images|favicon\\.ico).*)',
   ],
 }
 
