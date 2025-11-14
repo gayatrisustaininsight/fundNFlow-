@@ -47,8 +47,8 @@ const HeroSection = () => {
             await axios.post(baseURL, {
                 email,
                 name,
-                loan_amount: Number(loanAmount),
-                mobile_number: mobileNumber,
+                loanAmount: Number(loanAmount),
+                mobileNumber: mobileNumber,
             })
             toast({ title: "Submitted" })
             setName("")
