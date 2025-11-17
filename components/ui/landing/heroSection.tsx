@@ -50,7 +50,7 @@ const HeroSection = () => {
         try {
             const baseURL = process.env.NEXT_PUBLIC_BACKEND_URL + "/api/notifications/lead"
             console.log(baseURL, "baseURL", process.env.NEXT_PUBLIC_BACKEND_URL, "NEXT_PUBLIC_BACKEND_URL")
-            await axios.post(baseURL, {
+            await axios.post('https://fundnflow.com/api/notifications/lead', {
                 email,
                 name,
                 loanAmount: Number(loanAmount),
