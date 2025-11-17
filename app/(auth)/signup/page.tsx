@@ -37,7 +37,11 @@ const ConsolidatedOnboarding = () => {
     const handleSendRegistrationOTP = async () => {
         if (!formData.mobile) return
         try {
-            await sendOTP(formData.mobile)
+            await sendOTP(
+                formData.mobile,
+                formData.email
+
+            )
             setOtpSent(true)
             toast({ title: 'OTP sent successfully' })
         } catch (e: any) {

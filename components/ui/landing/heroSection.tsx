@@ -46,6 +46,7 @@ const HeroSection = () => {
         setSubmitting(true)
         try {
             const baseURL = process.env.NEXT_PUBLIC_BACKEND_URL + "/api/notifications/lead"
+            console.log(baseURL, "baseURL", process.env.NEXT_PUBLIC_BACKEND_URL, "NEXT_PUBLIC_BACKEND_URL")
             await axios.post(baseURL, {
                 email,
                 name,

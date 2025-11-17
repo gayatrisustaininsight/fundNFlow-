@@ -44,8 +44,8 @@ interface AuthState {
   updateContactDetails: (details: Partial<ContactDetails>) => void
   
   // OTP actions
-  sendOTP: (mobile: string) => Promise<void>
-  verifyOTP: (mobile: string, otp: string) => Promise<boolean>
+  sendOTP: (mobile: string ,email:string) => Promise<void>
+  verifyOTP: (mobile: string, mobileOtp: string  , email?:string, emailOpt?:string)  => Promise<boolean>
   sendLoginOTP: (mobile: string) => Promise<void>
   verifyLoginOTP: (mobile: string, otp: string) => Promise<{ user: User; token: string } | false>
   register: (payload: {
@@ -156,11 +156,12 @@ export const useAuthStore = create<AuthState>()(
       updateContactDetails: (details) => 
         set((state) => ({ contactDetails: { ...state.contactDetails, ...details } })),
       
-      sendOTP: async (mobile) => {
+      sendOTP: async (mobile ,email) => {
         set({ isSendingOTP: true })
         try {
-          const base = (process.env.NEXT_PUBLIC_BACKEND_URL || '') + '/api/auth'
-          const { data: { expiry } } = await api.post('/send-otp', { mobile }, { baseURL: base, withCredentials: false })
+          const base = (process.env.NEXT_PUBLIC_BACKEND_URL|| '') + '/api/auth'
+          console.log(mobile ,email ,base)
+          const { data: { expiry } } = await api.post('/send-otp', { mobile ,email }, { baseURL: base, withCredentials: false })
           set({ otpSent: true, otpExpiry: expiry })
         } catch (error: any) {
           const msg = error?.response?.data?.message || 'Failed to send OTP'
