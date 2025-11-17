@@ -22,6 +22,7 @@ const HeroSection = () => {
     const [isVideoModalOpen, setIsVideoModalOpen] = useState(false)
     const videoRef = useRef<HTMLVideoElement>(null)
     const { toast } = useToast();
+    console.log("gayatri", "process.env")
     console.log(process.env.NEXT_PUBLIC_BACKEND_URL, "NEXT_PUBLIC_BACKEND_URL")
     const waPhone = useMemo(() => {
         const configured = process.env.NEXT_PUBLIC_WHATSAPP_PHONE || "+91 98714 21515"
