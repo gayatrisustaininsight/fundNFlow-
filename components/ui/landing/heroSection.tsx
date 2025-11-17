@@ -15,12 +15,14 @@ const HeroSection = () => {
     const [name, setName] = useState("")
     const [email, setEmail] = useState("")
     const [mobileNumber, setMobileNumber] = useState("")
+
     const [loanAmount, setLoanAmount] = useState("")
     const [submitting, setSubmitting] = useState(false)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isVideoModalOpen, setIsVideoModalOpen] = useState(false)
     const videoRef = useRef<HTMLVideoElement>(null)
     const { toast } = useToast();
+    console.log(process.env.NEXT_PUBLIC_BACKEND_URL, "NEXT_PUBLIC_BACKEND_URL")
     const waPhone = useMemo(() => {
         const configured = process.env.NEXT_PUBLIC_WHATSAPP_PHONE || "+91 98714 21515"
         const digits = configured.replace(/[^0-9]/g, "")
