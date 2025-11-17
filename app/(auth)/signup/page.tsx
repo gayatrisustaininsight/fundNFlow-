@@ -29,6 +29,9 @@ const ConsolidatedOnboarding = () => {
 
 
 
+
+
+
     const [panVerified, setPanVerified] = useState<null | boolean>(null)
     const [gstVerified, setGstVerified] = useState<null | boolean>(null)
     const { verifyPAN, isVerifyingPAN, verifyGSTIN, isVerifyingGSTIN, register, isSendingOTP, isVerifyingOTP, isLoading, checkUser, sendOTP, verifyOTP, otpVerified, verificationToken } = useAuthStore()
