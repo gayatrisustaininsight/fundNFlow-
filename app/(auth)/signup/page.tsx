@@ -23,15 +23,7 @@ const ConsolidatedOnboarding = () => {
     const [step, setStep] = useState(1)
     const router = useRouter()
     const [formData, setFormData] = useState<FormState>({ businessName: '', pan: '', gstin: '', mobile: '', email: '', otp: '' })
-    const [otpSent, setOtpSent] = useState(false)
-
-
-
-
-
-
-
-
+    const [otpSent, setOtpSent] = useState(false);
     const [panVerified, setPanVerified] = useState<null | boolean>(null)
     const [gstVerified, setGstVerified] = useState<null | boolean>(null)
     const { verifyPAN, isVerifyingPAN, verifyGSTIN, isVerifyingGSTIN, register, isSendingOTP, isVerifyingOTP, isLoading, checkUser, sendOTP, verifyOTP, otpVerified, verificationToken } = useAuthStore()

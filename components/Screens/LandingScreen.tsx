@@ -18,11 +18,12 @@ import { useState } from 'react'
 import Testimonial from '../ui/landing/testimonial'
 const LandingPage = () => {
     const [currentPage, setCurrentPage] = useState('landing')
+    const [isContactModalOpen, setIsContactModalOpen] = useState(false)
     return (
         <div className="min-h-screen bg-white">
             <Navigation />
 
-            <HeroSection />
+            <HeroSection onOpenContactModal={() => setIsContactModalOpen(true)} isContactModalOpen={isContactModalOpen} onCloseContactModal={() => setIsContactModalOpen(false)} />
 
             <motion.section
                 initial={{ opacity: 0, y: 50 }}
@@ -155,13 +156,16 @@ const LandingPage = () => {
                     <p className="text-xl mb-8 text-blue-100">Join thousands of SMEs getting funded through FundnFlow</p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
 
-                        <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8" onClick={() => setCurrentPage('onboarding')}>
+                        <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8" onClick={() => setIsContactModalOpen(true)}>
                             Get Started Now
                             <ArrowRight className="w-5 h-5 ml-2" />
                         </Button>
 
                         <Button
                             variant="outline"
+                            size="lg"
+                            className="text-lg px-8 border-white text-white hover:bg-white/10"
+                            onClick={() => setIsContactModalOpen(true)}
                         >
                             Schedule a Demo
                         </Button>

@@ -11,7 +11,13 @@ import { useToast } from "@/hooks/use-toast"
 import Modal from "../Modal"
 import axios from "axios"
 
-const HeroSection = () => {
+interface HeroSectionProps {
+    onOpenContactModal?: () => void
+    isContactModalOpen?: boolean
+    onCloseContactModal?: () => void
+}
+
+const HeroSection = ({ onOpenContactModal, isContactModalOpen, onCloseContactModal }: HeroSectionProps) => {
     const [name, setName] = useState("")
     const [email, setEmail] = useState("")
     const [mobileNumber, setMobileNumber] = useState("")
@@ -20,6 +26,19 @@ const HeroSection = () => {
     const [submitting, setSubmitting] = useState(false)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isVideoModalOpen, setIsVideoModalOpen] = useState(false)
+
+    const modalOpen = isContactModalOpen !== undefined ? isContactModalOpen : isModalOpen
+    const setModalOpen = (open: boolean) => {
+        if (onCloseContactModal && onOpenContactModal) {
+            if (open) {
+                onOpenContactModal()
+            } else {
+                onCloseContactModal()
+            }
+        } else {
+            setIsModalOpen(open)
+        }
+    }
     const videoRef = useRef<HTMLVideoElement>(null)
     const { toast } = useToast();
     console.log("gayatri", "process.env")
@@ -61,7 +80,7 @@ const HeroSection = () => {
             setEmail("")
             setMobileNumber("")
             setLoanAmount("")
-            setIsModalOpen(false)
+            setModalOpen(false)
         } catch (e) {
             toast({ title: "Submission failed" })
         } finally {
@@ -227,7 +246,7 @@ const HeroSection = () => {
                             transition={{ duration: 0.6, delay: 0.5 }}
                             className="flex flex-col sm:flex-row gap-3 sm:gap-4"
                         >
-                            <Button size="lg" className="text-lg px-8" onClick={() => setIsModalOpen(true)}>
+                            <Button size="lg" className="text-lg px-8" onClick={() => setModalOpen(true)}>
                                 Get Started Free
                                 <ArrowRight className="w-5 h-5 ml-2" />
                             </Button>
@@ -278,7 +297,7 @@ const HeroSection = () => {
                 </div>
             </div >
 
-            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} maxWidthClassName="max-w-2xl">
+            <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} maxWidthClassName="max-w-2xl">
                 <div className="p-4 md:p-6 pb-8 md:pb-6">
                     <div className="flex items-start md:items-center justify-between mb-4 md:mb-6 gap-2">
                         <div className="flex flex-col md:flex-row md:items-center gap-2 flex-1">
@@ -286,7 +305,7 @@ const HeroSection = () => {
                             <Badge className="bg-green-100 text-green-700 text-sm w-fit">Get Response in 5 mins</Badge>
                         </div>
                         <button
-                            onClick={() => setIsModalOpen(false)}
+                            onClick={() => setModalOpen(false)}
                             className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0 mt-1 md:mt-0"
                         >
                             <X className="w-6 h-6" />
