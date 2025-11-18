@@ -51,7 +51,8 @@ const HeroSection = ({ onOpenContactModal, isContactModalOpen, onCloseContactMod
     }, [])
     const waLink = useMemo(() => {
         return `https://api.whatsapp.com/send?phone=${waPhone}`
-    }, [waPhone])
+    }, [waPhone]);
+
     const handleWhatsApp = () => {
         const isValid = /^\d{11,15}$/.test(waPhone)
         if (!isValid) {
