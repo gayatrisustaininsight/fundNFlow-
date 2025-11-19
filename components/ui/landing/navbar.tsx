@@ -6,6 +6,7 @@ import { AnimatePresence } from "framer-motion";
 import { X, Menu } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 const Navigation = () => {
     const [currentPage, setCurrentPage] = useState('landing')
@@ -16,7 +17,7 @@ const Navigation = () => {
     return (
         <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between items-center h-16">
+                <div className="flex justify-between items-center h-16 py-1">
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -24,12 +25,8 @@ const Navigation = () => {
                         className="flex items-center gap-2 cursor-pointer"
                         onClick={() => router.push('/')}
                     >
-                        <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                            <Zap className="w-6 h-6 text-white" />
-                        </div>
-                        <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                            FundnFlow
-                        </span>
+                        <Image src="/logo.png" alt="logo" width={250} height={250} />
+
                     </motion.div>
 
                     <div className="hidden md:flex items-center space-x-8">
